@@ -265,6 +265,11 @@
     font-size:1.02rem; color:var(--moss); margin:1.1rem 0 0; min-height:1.4em; font-style:italic;
   }
 
+  .rsvp__ask{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:1.3rem 0 0;}
+  .rsvp__ask a{color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
+    transition:color .2s ease, border-color .2s ease;}
+  .rsvp__ask a:hover, .rsvp__ask a:focus-visible{color:var(--pine); border-color:var(--pine);}
+
   .countdown{
     text-align:center; font-size:1.02rem; color:var(--ink-soft); font-weight:300;
     margin:2.6rem auto 0; max-width:var(--measure);
@@ -410,20 +415,12 @@
     <section class="rsvp">
       <p class="rsvp__by">Please reply by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we can set the table.</p>
 
-      <label class="field">
-        <span>Your name</span>
-        <input type="text" id="guestName" placeholder="Who's replying?" autocomplete="name">
-      </label>
-
-      <div class="choices" role="group" aria-label="Will you be joining us?">
-        <button class="choice" id="choiceYes" aria-pressed="false">Joyfully accepts</button>
-        <button class="choice" id="choiceNo" aria-pressed="false">Sadly declines</button>
-      </div>
-
       <div class="actions">
-        <a class="btn" id="sendBtn" href="#" aria-disabled="true">Send your reply</a>
+        <a class="btn" id="rsvpBtn" href="#" target="_blank" rel="noopener">Reply to the invitation</a>
         <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
+
+      <p class="rsvp__ask">Any questions? <a id="waLink" href="#" target="_blank" rel="noopener">Send us a WhatsApp</a></p>
 
       <p class="status" id="status"></p>
     </section>
@@ -455,10 +452,13 @@ const CONFIG = {
   dress: "Garden formal",
   dressNote: "Greens, creams, soft neutrals. Heels sink in grass.",
 
-  rsvpBy: "Friday, 30 October 2026",
+  rsvpBy: "Thursday, 1 October 2026",
+
+  // Replies collect here so they land in one list.
+  rsvpForm: "https://tally.so/r/Me4890",
 
   // WhatsApp number for replies, country code first, digits only (SA: 27...)
-  whatsapp: "27843093301",
+  whatsapp: "27607415890",
 
   // Used for the countdown and the calendar file. +02:00 is South African time.
   startsAt: "2026-11-08T11:30:00+02:00",
@@ -569,38 +569,16 @@ function blossoms(count){
 }
 
 /* ---------- RSVP ---------- */
-let answer = null;
-const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn"), status = $("status");
+const status = $("status");
 
-function choose(which){
-  answer = which;
-  yes.setAttribute("aria-pressed", String(which === "yes"));
-  no.setAttribute("aria-pressed", String(which === "no"));
-  updateSend();
-}
-yes.addEventListener("click", () => choose("yes"));
-no.addEventListener("click", () => choose("no"));
-$("guestName").addEventListener("input", updateSend);
+/* Replies go to the form so they collect in one place.
+   WhatsApp stays on the page for questions, not for replying. */
+const rsvpBtn = $("rsvpBtn");
+if (rsvpBtn) rsvpBtn.href = CONFIG.rsvpForm;
 
-function updateSend(){
-  const name = $("guestName").value.trim();
-  const ready = Boolean(answer && name);
-  send.setAttribute("aria-disabled", String(!ready));
-  if (!ready){
-    status.textContent = "";
-    send.removeAttribute("href");
-    return;
-  }
-  const message = answer === "yes"
-    ? `Hi! It's ${name}. Count me in for the signing lunch on ${CONFIG.dateLabel}.`
-    : `Hi! It's ${name}. I can't make the signing lunch on ${CONFIG.dateLabel}, but I'm celebrating from here.`;
-  send.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
-  send.target = "_blank";
-  send.rel = "noopener";
-  status.textContent = answer === "yes"
-    ? "Lovely. Tap send and your reply opens in WhatsApp."
-    : "Understood, and thank you for telling us. Tap send to let us know.";
-}
+const waLink = $("waLink");
+if (waLink) waLink.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" +
+  encodeURIComponent("Hi! A question about the signing lunch on " + CONFIG.dateLabel + ".");
 
 /* ---------- calendar file ---------- */
 $("calBtn").addEventListener("click", () => {
