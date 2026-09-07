@@ -270,6 +270,23 @@
     transition:color .2s ease, border-color .2s ease;}
   .rsvp__ask a:hover, .rsvp__ask a:focus-visible{color:var(--pine); border-color:var(--pine);}
 
+  /* ---------- things arrive as you reach them ---------- */
+  .reveal{opacity:0; transform:translateY(20px);
+    transition:opacity 1s cubic-bezier(.22,.9,.28,1), transform 1s cubic-bezier(.22,.9,.28,1);}
+  .reveal.is-in{opacity:1; transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1 !important; transform:none !important;}
+  }
+
+  .open-btn{position:relative; overflow:hidden;}
+  .open-btn::after{content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.24) 50%,transparent 68%);
+    transform:translateX(-130%);}
+  .open-btn:hover::after{transform:translateX(130%); transition:transform .95s ease;}
+
+  .rsvp__form{max-width:24rem; margin:.2rem auto 1.4rem;}
+  .rsvp__form iframe{width:100%; border:0; display:block; min-height:250px;}
+
   .countdown{
     text-align:center; font-size:1.02rem; color:var(--ink-soft); font-weight:300;
     margin:2.6rem auto 0; max-width:var(--measure);
@@ -415,12 +432,16 @@
     <section class="rsvp">
       <p class="rsvp__by">Please reply by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we can set the table.</p>
 
+      <div class="rsvp__form">
+        <iframe id="rsvpFrame" title="RSVP" loading="lazy" width="100%" height="250"
+                frameborder="0" marginheight="0" marginwidth="0"></iframe>
+      </div>
+
       <div class="actions">
-        <a class="btn" id="rsvpBtn" href="#" target="_blank" rel="noopener">Reply to the invitation</a>
         <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
 
-      <p class="rsvp__ask">Any questions? <a id="waLink" href="#" target="_blank" rel="noopener">Send us a WhatsApp</a></p>
+      <p class="rsvp__ask">Any questions? <a id="waLink" href="#" target="_blank" rel="noopener">WhatsApp Nande</a></p>
 
       <p class="status" id="status"></p>
     </section>
@@ -520,6 +541,8 @@ $("openBtn").addEventListener("click", () => {
     cover.style.display = "none";
     invite.classList.add("is-open");
     drawSprigs();
+    setupReveals();
+    initRsvp();
     if (!reduced) blossoms(16);
     invite.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   };
@@ -571,14 +594,11 @@ function blossoms(count){
 /* ---------- RSVP ---------- */
 const status = $("status");
 
-/* Replies go to the form so they collect in one place.
-   WhatsApp stays on the page for questions, not for replying. */
-const rsvpBtn = $("rsvpBtn");
-if (rsvpBtn) rsvpBtn.href = CONFIG.rsvpForm;
-
+/* Replies are collected in the form embedded above, so nobody leaves the page.
+   The WhatsApp number is Nande's, here for questions rather than replies. */
 const waLink = $("waLink");
 if (waLink) waLink.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" +
-  encodeURIComponent("Hi! A question about the signing lunch on " + CONFIG.dateLabel + ".");
+  encodeURIComponent("Hi Nande! A question about the signing lunch on " + CONFIG.dateLabel + ".");
 
 /* ---------- calendar file ---------- */
 $("calBtn").addEventListener("click", () => {
@@ -606,14 +626,86 @@ $("calBtn").addEventListener("click", () => {
 });
 
 /* ---------- days to go ---------- */
-(function countdown(){
-  const days = Math.ceil((new Date(CONFIG.startsAt) - new Date()) / 86400000);
+function startCountdown(){
   const el = $("countdown");
-  if (days > 1) el.innerHTML = `<strong>${days} days</strong> until we sign.`;
-  else if (days === 1) el.innerHTML = `<strong>Tomorrow.</strong>`;
-  else if (days === 0) el.innerHTML = `<strong>Today.</strong> See you under the trees.`;
-  else el.textContent = "";
+  if (!el) return;
+  const days = Math.ceil((new Date(CONFIG.startsAt) - new Date()) / 86400000);
+  if (days < 0){ el.textContent = ""; return; }
+  if (days === 0){ el.innerHTML = "<strong>Today.</strong> See you under the trees."; return; }
+  if (days === 1){ el.innerHTML = "<strong>Tomorrow.</strong>"; return; }
+  const write = (v) => { el.innerHTML = "<strong>" + v + " days</strong> until we sign."; };
+  if (reduced){ write(days); return; }
+  /* the number counts itself up the first time it comes into view */
+  const from = Math.max(0, days - 45); let t0 = null;
+  const step = (ts) => {
+    if (t0 === null) t0 = ts;
+    const p = Math.min(1, (ts - t0) / 1100);
+    write(Math.round(from + (days - from) * (1 - Math.pow(1 - p, 3))));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ---------- each part arrives as you reach it ---------- */
+function setupReveals(){
+  const items = [...invite.querySelectorAll(".masthead, .rule, .facts .fact, .heading, .day__item, .rsvp, .countdown, .signoff")];
+  items.forEach(el => el.classList.add("reveal"));
+  invite.querySelectorAll(".facts .fact").forEach((el, i) => el.dataset.d = i * 110);
+  invite.querySelectorAll(".day__item").forEach((el, i) => el.dataset.d = i * 80);
+  if (reduced || !("IntersectionObserver" in window)){
+    items.forEach(el => el.classList.add("is-in"));
+    startCountdown();
+    return;
+  }
+  let counted = false;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      setTimeout(() => el.classList.add("is-in"), Number(el.dataset.d || 0));
+      if (el.classList.contains("countdown") && !counted){ counted = true; startCountdown(); }
+      io.unobserve(el);
+    });
+  }, { threshold: .18, rootMargin: "0px 0px -6% 0px" });
+  items.forEach(el => io.observe(el));
+}
+
+/* ---------- the garden drifts a little as you scroll ---------- */
+(function parallax(){
+  if (reduced) return;
+  const garden = document.querySelector(".garden");
+  if (!garden) return;
+  let ticking = false;
+  addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      garden.style.transform = "translate3d(0," + (scrollY * 0.10).toFixed(1) + "px,0)";
+      ticking = false;
+    });
+  }, { passive: true });
 })();
+
+/* ---------- the reply form, embedded so nobody leaves the page ---------- */
+function initRsvp(){
+  const frame = $("rsvpFrame");
+  if (!frame || frame.dataset.ready) return;
+  frame.dataset.ready = "1";
+  const src = CONFIG.rsvpForm.replace("/r/", "/embed/") +
+    "?hideTitle=1&transparentBackground=1&dynamicHeight=1";
+  frame.setAttribute("data-tally-src", src);
+  const go = () => {
+    if (window.Tally && typeof window.Tally.loadEmbeds === "function") window.Tally.loadEmbeds();
+    /* if their script never arrives, point the frame straight at the form
+       so replies still reach us rather than failing quietly */
+    if (!frame.src) frame.src = src;
+  };
+  if (window.Tally) return go();
+  const s = document.createElement("script");
+  s.src = "https://tally.so/widgets/embed.js";
+  s.onload = go; s.onerror = go;
+  document.body.appendChild(s);
+}
 </script>
 </body>
 </html>
