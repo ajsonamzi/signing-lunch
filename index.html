@@ -544,6 +544,9 @@ $("openBtn").addEventListener("click", () => {
     setupReveals();
     initRsvp();
     if (!reduced) blossoms(16);
+    /* if the opening animation is ever throttled by the browser, make sure the
+       invitation still ends up fully visible rather than stuck part-faded */
+    setTimeout(() => invite.getAnimations().forEach(a => { try { a.finish(); } catch (e) {} }), 1200);
     invite.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
   };
   reduced ? reveal() : setTimeout(reveal, 520);
@@ -657,8 +660,16 @@ function setupReveals(){
     startCountdown();
     return;
   }
-  let counted = false;
+  let counted = false, delivered = false;
+  const showAll = () => {
+    items.forEach(el => el.classList.add("is-in"));
+    if (!counted){ counted = true; startCountdown(); }
+  };
+  /* safety net: if the observer never reports back, show everything rather than
+     leaving the invitation invisible */
+  setTimeout(() => { if (!delivered) showAll(); }, 2000);
   const io = new IntersectionObserver((entries) => {
+    delivered = true;
     entries.forEach(e => {
       if (!e.isIntersecting) return;
       const el = e.target;
