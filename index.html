@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayanda &amp; Nande — Signing Lunch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     PALETTE — shades of green, from deep shade to new growth
+     ============================================================ */
+  :root{
+    --canopy:#132A1C;      /* deepest shade, page background */
+    --pine:#1D3B28;
+    --moss:#3C6444;
+    --spring:#7FA55C;      /* new growth */
+    --sage:#C3D3B6;
+    --paper:#F6F8F2;       /* cool, green-tinted paper */
+    --paper-edge:#E7EDE0;
+    --ink:#17281B;
+    --ink-soft:#4A5C4C;
+    --breath:#FFFFFF;
+
+    --serif:'Cormorant Garamond', 'Hoefler Text', Georgia, serif;
+    --sans:'Karla', 'Helvetica Neue', Arial, sans-serif;
+
+    --measure:34rem;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{margin:0;padding:0;}
+
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, #244A30 0%, rgba(36,74,48,0) 60%),
+      radial-gradient(90% 60% at 90% 110%, #1B3A26 0%, rgba(27,58,38,0) 55%),
+      var(--canopy);
+    color:var(--ink);
+    font-family:var(--serif);
+    min-height:100vh;
+    padding:clamp(12px,4vw,56px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* soft out-of-focus stems behind the card */
+  .garden{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    opacity:.28; filter:blur(1.5px);
+  }
+
+  /* ============================================================
+     THE CARD
+     ============================================================ */
+  .card{
+    position:relative; z-index:1;
+    width:min(46rem,100%);
+    background:linear-gradient(180deg,var(--paper) 0%, var(--paper) 72%, var(--paper-edge) 100%);
+    border-radius:2px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.6) inset,
+      0 30px 70px -30px rgba(5,20,10,.75),
+      0 4px 14px rgba(5,20,10,.35);
+    overflow:hidden;
+  }
+  .card::before{ /* thin ruled edge, like a pressed card */
+    content:""; position:absolute; inset:10px; border:1px solid rgba(60,100,68,.22);
+    pointer-events:none; border-radius:1px;
+  }
+
+  .sprig{position:absolute; pointer-events:none;}
+  .sprig--tl{top:-6px; left:-10px; width:min(230px,42%);}
+  .sprig--br{bottom:-14px; right:-16px; width:min(260px,46%); transform:rotate(180deg);}
+
+  /* ---------- closed state ---------- */
+  .cover{
+    position:relative; z-index:2;
+    min-height:min(76vh,620px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding:clamp(32px,7vw,72px);
+    gap:1.4rem;
+  }
+  .cover__season{
+    font-family:var(--sans); font-weight:300; font-size:.82rem;
+    letter-spacing:.24em; color:var(--moss);
+  }
+  .cover__names{
+    font-size:clamp(2.9rem,10vw,4.6rem); font-weight:300; line-height:1.02;
+    margin:0; color:var(--pine);
+  }
+  .cover__names em{font-style:italic; font-size:.5em; display:block; color:var(--spring); margin:.35em 0;}
+  .cover__line{
+    font-size:clamp(1.05rem,2.6vw,1.3rem); font-weight:300; color:var(--ink-soft);
+    max-width:26rem; margin:0; line-height:1.6;
+  }
+
+  .open-btn{
+    margin-top:.6rem;
+    font-family:var(--sans); font-size:.9rem; font-weight:400; letter-spacing:.06em;
+    color:var(--paper); background:var(--pine);
+    border:0; border-radius:999px;
+    padding:.95rem 2.1rem;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:.6rem;
+    transition:background .35s ease, transform .35s ease;
+  }
+  .open-btn:hover{background:var(--moss); transform:translateY(-1px);}
+  .open-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+
+  /* ---------- opening motion ---------- */
+  .cover.is-leaving{
+    animation:cover-out .7s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes cover-out{
+    to{opacity:0; transform:translateY(-10px) scale(1.02); filter:blur(2px);}
+  }
+
+  .invite{
+    display:none;
+    padding:clamp(34px,7vw,76px) clamp(26px,7vw,84px) clamp(40px,8vw,72px);
+    transform-origin:top center;
+  }
+  .invite.is-open{
+    display:block;
+    animation:unfold .9s cubic-bezier(.22,.9,.28,1) both;
+  }
+  @keyframes unfold{
+    from{opacity:0; transform:perspective(1400px) rotateX(-9deg) translateY(18px);}
+    to{opacity:1; transform:none;}
+  }
+
+  /* ============================================================
+     INVITATION CONTENT
+     ============================================================ */
+  .masthead{text-align:center; max-width:var(--measure); margin:0 auto;}
+  .masthead__season{
+    font-family:var(--sans); font-weight:300; font-size:.78rem; letter-spacing:.22em;
+    color:var(--moss); margin:0 0 1.6rem;
+  }
+  .masthead__names{
+    font-size:clamp(2.6rem,8.5vw,4.2rem); font-weight:300; line-height:1.05;
+    margin:0; color:var(--pine);
+  }
+  .masthead__amp{font-style:italic; color:var(--spring); display:block; font-size:.44em; margin:.28em 0;}
+  .masthead__note{
+    font-size:clamp(1.02rem,2.4vw,1.22rem); line-height:1.75; font-weight:300;
+    color:var(--ink-soft); margin:1.8rem auto 0; max-width:29rem;
+  }
+
+  .rule{
+    width:120px; height:1px; margin:2.8rem auto; border:0;
+    background:linear-gradient(90deg,transparent,var(--sage),transparent);
+  }
+
+  .facts{
+    display:grid; gap:clamp(1.6rem,4vw,2.4rem);
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    max-width:var(--measure); margin:0 auto; text-align:center;
+  }
+  .fact__key{
+    font-family:var(--sans); font-size:.74rem; letter-spacing:.16em; font-weight:400;
+    color:var(--spring); margin:0 0 .5rem;
+  }
+  .fact__val{font-size:1.32rem; line-height:1.45; margin:0; color:var(--pine); font-weight:400;}
+  .fact__sub{font-size:1rem; color:var(--ink-soft); margin:.3rem 0 0; font-weight:300;}
+  .fact__sub a{
+    color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .fact__sub a:hover, .fact__sub a:focus-visible{color:var(--pine); border-color:var(--pine);}
+
+  .day{
+    max-width:var(--measure); margin:0 auto; padding:0;
+    list-style:none;
+  }
+  .day__item{
+    display:grid; grid-template-columns:5.2rem 1fr; gap:1.1rem;
+    padding:.85rem 0; align-items:baseline;
+    border-bottom:1px solid rgba(60,100,68,.14);
+  }
+  .day__item:last-child{border-bottom:0;}
+  .day__time{font-family:var(--sans); font-size:.9rem; color:var(--moss); letter-spacing:.03em;}
+  .day__what{font-size:1.15rem; color:var(--pine);}
+  .day__what span{display:block; font-size:.98rem; color:var(--ink-soft); font-weight:300;}
+
+  .heading{
+    font-size:1.05rem; font-weight:400; letter-spacing:.02em; color:var(--moss);
+    text-align:center; margin:0 0 1.4rem; font-style:italic;
+  }
+
+  /* ---------- RSVP ---------- */
+  .rsvp{
+    max-width:var(--measure); margin:0 auto;
+    background:rgba(195,211,182,.24);
+    border:1px solid rgba(60,100,68,.18);
+    padding:clamp(22px,5vw,34px);
+    border-radius:3px;
+    text-align:center;
+  }
+  .rsvp__by{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:0 0 1.5rem;}
+  .rsvp__by strong{font-weight:500; color:var(--pine);}
+
+  .field{display:block; max-width:22rem; margin:0 auto 1.2rem; text-align:left;}
+  .field span{
+    font-family:var(--sans); font-size:.74rem; letter-spacing:.14em; color:var(--moss);
+    display:block; margin-bottom:.45rem;
+  }
+  .field input{
+    width:100%; font-family:var(--serif); font-size:1.1rem; color:var(--ink);
+    background:var(--paper); border:1px solid rgba(60,100,68,.28); border-radius:2px;
+    padding:.7rem .85rem;
+  }
+  .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
+
+  .choices{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.4rem;}
+  .choice{
+    font-family:var(--sans); font-size:.88rem; font-weight:400; color:var(--pine);
+    background:transparent; border:1px solid rgba(60,100,68,.35); border-radius:999px;
+    padding:.7rem 1.35rem; cursor:pointer;
+    transition:background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .choice:hover{border-color:var(--moss); background:rgba(127,165,92,.14);}
+  .choice[aria-pressed="true"]{background:var(--pine); color:var(--paper); border-color:var(--pine);}
+
+  .actions{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--sans); font-size:.88rem; letter-spacing:.04em;
+    padding:.85rem 1.6rem; border-radius:999px; cursor:pointer; border:1px solid var(--pine);
+    background:var(--pine); color:var(--paper); text-decoration:none;
+    display:inline-flex; align-items:center; transition:background .25s ease, transform .25s ease;
+  }
+  .btn:hover{background:var(--moss); transform:translateY(-1px);}
+  .btn--quiet{background:transparent; color:var(--pine);}
+  .btn--quiet:hover{background:rgba(127,165,92,.14);}
+  .btn[aria-disabled="true"]{opacity:.42; pointer-events:none;}
+
+  .status{
+    font-size:1.02rem; color:var(--moss); margin:1.1rem 0 0; min-height:1.4em; font-style:italic;
+  }
+
+  .countdown{
+    text-align:center; font-size:1.02rem; color:var(--ink-soft); font-weight:300;
+    margin:2.6rem auto 0; max-width:var(--measure);
+  }
+  .countdown strong{color:var(--spring); font-weight:500;}
+
+  .signoff{
+    text-align:center; margin:2.4rem auto 0; max-width:var(--measure);
+    font-style:italic; font-size:1.12rem; color:var(--moss); font-weight:300;
+  }
+
+  :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
+
+  /* ---------- drifting blossoms ---------- */
+  .blossoms{position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden;}
+  .blossom{
+    position:absolute; top:-4vh; border-radius:50%;
+    background:var(--breath); opacity:0;
+    box-shadow:0 0 6px rgba(255,255,255,.55);
+    animation:drift linear forwards;
+  }
+  @keyframes drift{
+    0%{opacity:0; transform:translate3d(0,0,0) scale(.7);}
+    12%{opacity:.9;}
+    100%{opacity:0; transform:translate3d(var(--dx),108vh,0) scale(1);}
+  }
+
+  @media (max-width:520px){
+    .day__item{grid-template-columns:4.4rem 1fr; gap:.8rem;}
+    .sprig--tl{width:44%;}
+    .sprig--br{width:48%;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important; transition:none !important;}
+    .blossoms{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- soft stems in the background -->
+<svg class="garden" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <g fill="none" stroke="#7FA55C" stroke-width="1.2" stroke-linecap="round">
+    <path d="M90 800 C 120 620, 60 520, 130 380 C 170 300, 140 240, 175 160"/>
+    <path d="M175 160 C 210 210, 245 205, 268 170"/>
+    <path d="M130 380 C 180 400, 230 380, 250 340"/>
+    <path d="M1110 800 C 1080 640, 1140 540, 1070 400 C 1030 320, 1060 250, 1025 175"/>
+    <path d="M1025 175 C 990 225, 955 220, 932 185"/>
+    <path d="M1070 400 C 1020 420, 970 400, 950 360"/>
+    <path d="M600 800 C 620 700, 580 640, 615 560"/>
+  </g>
+  <g fill="#FFFFFF" opacity=".85">
+    <circle cx="268" cy="170" r="5"/><circle cx="250" cy="340" r="4"/><circle cx="175" cy="160" r="4"/>
+    <circle cx="932" cy="185" r="5"/><circle cx="950" cy="360" r="4"/><circle cx="1025" cy="175" r="4"/>
+    <circle cx="615" cy="560" r="4"/>
+  </g>
+</svg>
+
+<main class="card" id="card">
+
+  <!-- baby's breath sprigs, drawn in when the card opens -->
+  <svg class="sprig sprig--tl" viewBox="0 0 260 220" aria-hidden="true">
+    <g class="stems" fill="none" stroke="#3C6444" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+      <path d="M8 6 C 60 40, 90 70, 120 120"/>
+      <path d="M60 40 C 78 32, 96 34, 112 46"/>
+      <path d="M90 70 C 104 92, 108 112, 104 134"/>
+      <path d="M120 120 C 148 132, 172 130, 196 116"/>
+      <path d="M30 20 C 34 44, 30 62, 18 78"/>
+      <path d="M120 120 C 130 148, 128 172, 114 192"/>
+    </g>
+    <g class="buds" fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".6">
+      <circle cx="112" cy="46" r="6"/><circle cx="124" cy="38" r="4"/><circle cx="104" cy="34" r="3.4"/>
+      <circle cx="104" cy="134" r="6.4"/><circle cx="96" cy="146" r="4"/><circle cx="112" cy="146" r="3.4"/>
+      <circle cx="196" cy="116" r="7"/><circle cx="208" cy="106" r="4.4"/><circle cx="204" cy="126" r="3.6"/>
+      <circle cx="18" cy="78" r="6"/><circle cx="10" cy="90" r="3.6"/><circle cx="26" cy="90" r="3.2"/>
+      <circle cx="114" cy="192" r="6.6"/><circle cx="104" cy="202" r="4"/><circle cx="124" cy="202" r="3.4"/>
+    </g>
+  </svg>
+
+  <svg class="sprig sprig--br" viewBox="0 0 260 220" aria-hidden="true">
+    <g class="stems" fill="none" stroke="#3C6444" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+      <path d="M8 6 C 60 40, 90 70, 120 120"/>
+      <path d="M60 40 C 78 32, 96 34, 112 46"/>
+      <path d="M90 70 C 104 92, 108 112, 104 134"/>
+      <path d="M120 120 C 148 132, 172 130, 196 116"/>
+      <path d="M30 20 C 34 44, 30 62, 18 78"/>
+      <path d="M120 120 C 130 148, 128 172, 114 192"/>
+    </g>
+    <g class="buds" fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".6">
+      <circle cx="112" cy="46" r="6"/><circle cx="124" cy="38" r="4"/><circle cx="104" cy="34" r="3.4"/>
+      <circle cx="104" cy="134" r="6.4"/><circle cx="96" cy="146" r="4"/><circle cx="112" cy="146" r="3.4"/>
+      <circle cx="196" cy="116" r="7"/><circle cx="208" cy="106" r="4.4"/><circle cx="204" cy="126" r="3.6"/>
+      <circle cx="18" cy="78" r="6"/><circle cx="10" cy="90" r="3.6"/><circle cx="26" cy="90" r="3.2"/>
+      <circle cx="114" cy="192" r="6.6"/><circle cx="104" cy="202" r="4"/><circle cx="124" cy="202" r="3.4"/>
+    </g>
+  </svg>
+
+  <!-- CLOSED -->
+  <section class="cover" id="cover">
+    <p class="cover__season" id="coverSeason">the last days of spring</p>
+    <h1 class="cover__names"><span id="coverA">Ayanda</span><em>&amp;</em><span id="coverB">Nande</span></h1>
+    <p class="cover__line">We're signing our names on a Saturday in late spring, and we'd like you at the table when we do.</p>
+    <button class="open-btn" id="openBtn"><span class="dot"></span>Open the invitation</button>
+  </section>
+
+  <!-- OPEN -->
+  <article class="invite" id="invite" aria-live="polite">
+    <header class="masthead">
+      <p class="masthead__season">a signing &amp; a long lunch</p>
+      <h1 class="masthead__names"><span id="nameA">Ayanda</span><span class="masthead__amp">and</span><span id="nameB">Nande</span></h1>
+      <p class="masthead__note" id="blurb">Spring is nearly out of days, so we're spending one of the last ones making it official — a small signing under the trees, then lunch that runs as long as everyone is happy to sit.</p>
+    </header>
+
+    <hr class="rule">
+
+    <section class="facts">
+      <div class="fact">
+        <p class="fact__key">The day</p>
+        <p class="fact__val" id="factDate">Saturday, 21 November 2026</p>
+        <p class="fact__sub" id="factTime">Arrive from 11:30</p>
+      </div>
+      <div class="fact">
+        <p class="fact__key">The place</p>
+        <p class="fact__val" id="factVenue">The venue</p>
+        <p class="fact__sub"><a id="factAddress" href="#" target="_blank" rel="noopener">Muldersdrift, Johannesburg</a></p>
+      </div>
+      <div class="fact">
+        <p class="fact__key">What to wear</p>
+        <p class="fact__val" id="factDress">Garden formal</p>
+        <p class="fact__sub" id="factDressNote">Greens, creams, soft neutrals. Heels sink in grass.</p>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <h2 class="heading">How the day runs</h2>
+    <ol class="day" id="dayList"></ol>
+
+    <hr class="rule">
+
+    <h2 class="heading">Let us know</h2>
+    <section class="rsvp">
+      <p class="rsvp__by">Please reply by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we can set the table.</p>
+
+      <label class="field">
+        <span>Your name</span>
+        <input type="text" id="guestName" placeholder="Who's replying?" autocomplete="name">
+      </label>
+
+      <div class="choices" role="group" aria-label="Will you be joining us?">
+        <button class="choice" id="choiceYes" aria-pressed="false">Joyfully accepts</button>
+        <button class="choice" id="choiceNo" aria-pressed="false">Sadly declines</button>
+      </div>
+
+      <div class="actions">
+        <a class="btn" id="sendBtn" href="#" aria-disabled="true">Send your reply</a>
+        <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
+      </div>
+
+      <p class="status" id="status"></p>
+    </section>
+
+    <p class="countdown" id="countdown"></p>
+    <p class="signoff">With love, from both of us.</p>
+  </article>
+</main>
+
+<div class="blossoms" id="blossoms" aria-hidden="true"></div>
+
+<script>
+/* ================================================================
+   EVERYTHING YOU'LL WANT TO CHANGE LIVES HERE.
+   Edit the values below and the invitation updates itself.
+   ================================================================ */
+const CONFIG = {
+  nameA: "Ayanda",
+  nameB: "Nande",
+
+  blurb: "Spring is nearly out of days, so we're spending one of the last ones making it official — a small signing under the trees, then lunch that runs as long as everyone is happy to sit.",
+
+  dateLabel: "Sunday, 8 November 2026",
+  timeLabel: "Arrive from 11:30",
+
+  venue: "GROUND The Venue",
+  address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
+
+  dress: "Garden formal",
+  dressNote: "Greens, creams, soft neutrals. Heels sink in grass.",
+
+  rsvpBy: "Friday, 30 October 2026",
+
+  // WhatsApp number for replies, country code first, digits only (SA: 27...)
+  whatsapp: "27843093301",
+
+  // Used for the countdown and the calendar file. +02:00 is South African time.
+  startsAt: "2026-11-08T11:30:00+02:00",
+  endsAt:   "2026-11-08T17:00:00+02:00",
+
+  schedule: [
+    { time: "11:30", what: "Arrival",  detail: "Something cold to drink in the garden." },
+    { time: "12:00", what: "The signing", detail: "Short and sweet. Please be seated by 11:55." },
+    { time: "12:30", what: "Photographs", detail: "Family first, then everyone." },
+    { time: "13:00", what: "Lunch",   detail: "Long table, a few words, no rush." },
+    { time: "16:00", what: "Slow goodbyes", detail: "Coffee, cake, and the last of the spring light." }
+  ]
+};
+
+/* ---------- fill the page from CONFIG ---------- */
+const $ = (id) => document.getElementById(id);
+const set = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+
+set("coverA", CONFIG.nameA); set("coverB", CONFIG.nameB);
+set("nameA", CONFIG.nameA);  set("nameB", CONFIG.nameB);
+set("blurb", CONFIG.blurb);
+set("factDate", CONFIG.dateLabel);
+set("factTime", CONFIG.timeLabel);
+set("factVenue", CONFIG.venue);
+set("factDress", CONFIG.dress);
+set("factDressNote", CONFIG.dressNote);
+set("rsvpBy", CONFIG.rsvpBy);
+document.title = CONFIG.nameA + " & " + CONFIG.nameB + " — Signing Lunch";
+
+const mapsLink = $("factAddress");
+if (mapsLink){
+  mapsLink.textContent = CONFIG.address;
+  // A "search" link works everywhere: opens the Google Maps app on iOS/Android
+  // if it's installed, and the Google Maps site in any browser if it isn't.
+  mapsLink.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(CONFIG.venue + ", " + CONFIG.address);
+}
+
+$("dayList").innerHTML = CONFIG.schedule.map(s => `
+  <li class="day__item">
+    <span class="day__time">${s.time}</span>
+    <span class="day__what">${s.what}<span>${s.detail}</span></span>
+  </li>`).join("");
+
+/* ---------- opening the card ---------- */
+const cover = $("cover");
+const invite = $("invite");
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+$("openBtn").addEventListener("click", () => {
+  cover.classList.add("is-leaving");
+  const reveal = () => {
+    cover.style.display = "none";
+    invite.classList.add("is-open");
+    drawSprigs();
+    if (!reduced) blossoms(16);
+    invite.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+  };
+  reduced ? reveal() : setTimeout(reveal, 520);
+});
+
+/* baby's breath draws itself: stems first, then the buds open */
+function drawSprigs(){
+  document.querySelectorAll(".sprig").forEach((sprig, s) => {
+    sprig.querySelectorAll(".stems path").forEach((p, i) => {
+      const len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = reduced ? 0 : len;
+      if (reduced) return;
+      p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
+        duration: 1100, delay: 200 + s * 160 + i * 110, fill: "forwards",
+        easing: "cubic-bezier(.35,.9,.35,1)"
+      });
+    });
+    sprig.querySelectorAll(".buds circle").forEach((c, i) => {
+      if (reduced) return;
+      c.style.transformOrigin = c.getAttribute("cx") + "px " + c.getAttribute("cy") + "px";
+      c.style.opacity = 0;
+      c.animate([{ opacity: 0, transform: "scale(.2)" }, { opacity: 1, transform: "scale(1)" }], {
+        duration: 620, delay: 900 + s * 160 + i * 55, fill: "forwards",
+        easing: "cubic-bezier(.2,.9,.3,1.2)"
+      });
+    });
+  });
+}
+
+/* a handful of blossoms drift past, once */
+function blossoms(count){
+  const stage = $("blossoms");
+  for (let i = 0; i < count; i++){
+    const b = document.createElement("span");
+    const size = 3 + Math.random() * 5;
+    b.className = "blossom";
+    b.style.width = b.style.height = size + "px";
+    b.style.left = Math.random() * 100 + "vw";
+    b.style.setProperty("--dx", (Math.random() * 90 - 45) + "px");
+    b.style.animationDuration = (9 + Math.random() * 7) + "s";
+    b.style.animationDelay = (Math.random() * 6) + "s";
+    b.addEventListener("animationend", () => b.remove());
+    stage.appendChild(b);
+  }
+}
+
+/* ---------- RSVP ---------- */
+let answer = null;
+const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn"), status = $("status");
+
+function choose(which){
+  answer = which;
+  yes.setAttribute("aria-pressed", String(which === "yes"));
+  no.setAttribute("aria-pressed", String(which === "no"));
+  updateSend();
+}
+yes.addEventListener("click", () => choose("yes"));
+no.addEventListener("click", () => choose("no"));
+$("guestName").addEventListener("input", updateSend);
+
+function updateSend(){
+  const name = $("guestName").value.trim();
+  const ready = Boolean(answer && name);
+  send.setAttribute("aria-disabled", String(!ready));
+  if (!ready){
+    status.textContent = "";
+    send.removeAttribute("href");
+    return;
+  }
+  const message = answer === "yes"
+    ? `Hi! It's ${name}. Count me in for the signing lunch on ${CONFIG.dateLabel}.`
+    : `Hi! It's ${name}. I can't make the signing lunch on ${CONFIG.dateLabel}, but I'm celebrating from here.`;
+  send.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
+  send.target = "_blank";
+  send.rel = "noopener";
+  status.textContent = answer === "yes"
+    ? "Lovely. Tap send and your reply opens in WhatsApp."
+    : "Understood, and thank you for telling us. Tap send to let us know.";
+}
+
+/* ---------- calendar file ---------- */
+$("calBtn").addEventListener("click", () => {
+  const stamp = (iso) => new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const ics = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//signing lunch//EN",
+    "BEGIN:VEVENT",
+    "UID:" + Date.now() + "@signing-lunch",
+    "DTSTAMP:" + stamp(new Date().toISOString()),
+    "DTSTART:" + stamp(CONFIG.startsAt),
+    "DTEND:" + stamp(CONFIG.endsAt),
+    "SUMMARY:" + CONFIG.nameA + " & " + CONFIG.nameB + " — signing lunch",
+    "LOCATION:" + CONFIG.venue + ", " + CONFIG.address,
+    "DESCRIPTION:" + CONFIG.timeLabel + ". " + CONFIG.dress + ".",
+    "END:VEVENT", "END:VCALENDAR"
+  ].join("\r\n");
+
+  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "signing-lunch.ics";
+  a.click();
+  URL.revokeObjectURL(url);
+  status.textContent = "Saved to your downloads — open it to add the day to your calendar.";
+});
+
+/* ---------- days to go ---------- */
+(function countdown(){
+  const days = Math.ceil((new Date(CONFIG.startsAt) - new Date()) / 86400000);
+  const el = $("countdown");
+  if (days > 1) el.innerHTML = `<strong>${days} days</strong> until we sign.`;
+  else if (days === 1) el.innerHTML = `<strong>Tomorrow.</strong>`;
+  else if (days === 0) el.innerHTML = `<strong>Today.</strong> See you under the trees.`;
+  else el.textContent = "";
+})();
+</script>
+</body>
+</html>
