@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>Ayanda &amp; Nande — Signing Lunch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -346,7 +347,7 @@
   <section class="cover" id="cover">
     <p class="cover__season" id="coverSeason">the last days of spring</p>
     <h1 class="cover__names"><span id="coverA">Ayanda</span><em>&amp;</em><span id="coverB">Nande</span></h1>
-    <p class="cover__line">We're signing our names on a Saturday in late spring, and we'd like you at the table when we do.</p>
+    <p class="cover__line" id="coverLine">We're signing our names in late spring, and we'd like you at the table when we do.</p>
     <button class="open-btn" id="openBtn"><span class="dot"></span>Open the invitation</button>
   </section>
 
@@ -363,12 +364,12 @@
     <section class="facts">
       <div class="fact">
         <p class="fact__key">The day</p>
-        <p class="fact__val" id="factDate">Saturday, 21 November 2026</p>
+        <p class="fact__val" id="factDate">Sunday, 8 November 2026</p>
         <p class="fact__sub" id="factTime">Arrive from 11:30</p>
       </div>
       <div class="fact">
         <p class="fact__key">The place</p>
-        <p class="fact__val" id="factVenue">The venue</p>
+        <p class="fact__val" id="factVenue">GROUND The Venue</p>
         <p class="fact__sub"><a id="factAddress" href="#" target="_blank" rel="noopener">Muldersdrift, Johannesburg</a></p>
       </div>
       <div class="fact">
@@ -465,6 +466,13 @@ set("factVenue", CONFIG.venue);
 set("factDress", CONFIG.dress);
 set("factDressNote", CONFIG.dressNote);
 set("rsvpBy", CONFIG.rsvpBy);
+
+/* The cover weekday is derived from startsAt, never typed by hand,
+   so it cannot drift out of step if the date ever moves again. */
+const coverWeekday = new Date(CONFIG.startsAt).toLocaleDateString("en-ZA", {
+  weekday: "long", timeZone: "Africa/Johannesburg"
+});
+set("coverLine", "We're signing our names on a " + coverWeekday + " in late spring, and we'd like you at the table when we do.");
 document.title = CONFIG.nameA + " & " + CONFIG.nameB + " — Signing Lunch";
 
 const mapsLink = $("factAddress");
