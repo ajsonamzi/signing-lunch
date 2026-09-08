@@ -25,6 +25,8 @@
 <meta name="twitter:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 12:00.">
 <meta name="twitter:image" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
 <title>Nande &amp; Ayanda — Signing Lunch</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -114,6 +116,25 @@
   .sprig{position:absolute; pointer-events:none;}
   .sprig--tl{top:-6px; left:-10px; width:min(230px,42%);}
   .sprig--br{bottom:-14px; right:-16px; width:min(260px,46%); transform:rotate(180deg);}
+
+  /* the sprigs breathe, as if there were a draught in the room. the two
+     keyframe sets differ only in carrying each sprig's resting rotation */
+  .sprig--tl{animation:sway-tl 9s ease-in-out 1.6s infinite;}
+  .sprig--br{animation:sway-br 11s ease-in-out 2.2s infinite;}
+  @keyframes sway-tl{
+    0%,100%{transform:rotate(0deg) translate3d(0,0,0);}
+    50%{transform:rotate(1.1deg) translate3d(0,-5px,0);}
+  }
+  @keyframes sway-br{
+    0%,100%{transform:rotate(180deg) translate3d(0,0,0);}
+    50%{transform:rotate(181.1deg) translate3d(0,-5px,0);}
+  }
+
+  .open-btn .dot{animation:dot-pulse 2.8s ease-in-out infinite;}
+  @keyframes dot-pulse{
+    0%,100%{opacity:.55; transform:scale(1);}
+    50%{opacity:1; transform:scale(1.35);}
+  }
 
   /* ---------- closed state ---------- */
   .cover{
@@ -248,6 +269,14 @@
 
   .rsvp__form{max-width:24rem; margin:.2rem auto 1.4rem;}
   .rsvp__form iframe{width:100%; border:0; display:block; min-height:320px;}
+
+  .replied{max-width:24rem; margin:.2rem auto 1.4rem; padding:1.6rem 1rem;}
+  .replied p{font-size:1.06rem; color:var(--pine); font-weight:300; margin:0 0 1.2rem; line-height:1.6;}
+  .replied .tick{
+    width:34px; height:34px; margin:0 auto .9rem; border-radius:50%;
+    border:1px solid rgba(60,100,68,.45); display:grid; place-items:center;
+    color:var(--moss); font-size:1rem;
+  }
 
   .rsvp__ask{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:1.3rem 0 0;}
   .rsvp__ask a{color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
@@ -403,7 +432,7 @@
   <section class="cover" id="cover">
     <p class="cover__season" id="coverSeason">the last days of spring</p>
     <h1 class="cover__names"><span id="coverA">Nande</span><em>&amp;</em><span id="coverB">Ayanda</span></h1>
-    <p class="cover__line" id="coverLine">We're making it official in late spring. The good part comes after — a long table, and you at it.</p>
+    <p class="cover__line" id="coverLine">We're making it official in late spring, and we'd like you at the table after we do.</p>
     <button class="open-btn" id="openBtn"><span class="dot"></span>Open the invitation</button>
   </section>
 
@@ -431,7 +460,7 @@
       <div class="fact">
         <p class="fact__key">What to wear</p>
         <p class="fact__val" id="factDress">Garden formal</p>
-        <p class="fact__sub" id="factDressNote">Something you'll be happy to sit in for hours.</p>
+        <p class="fact__sub" id="factDressNote">Wear the thing you've been saving.</p>
       </div>
     </section>
 
@@ -441,8 +470,14 @@
     <section class="rsvp">
       <p class="rsvp__by">Let us know by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we know how many chairs to pull up.</p>
 
-      <div class="rsvp__form">
+      <div class="rsvp__form" id="rsvpForm">
         <iframe id="rsvpFrame" title="RSVP" loading="lazy" width="100%" height="320"></iframe>
+      </div>
+
+      <div class="replied" id="replied" hidden>
+        <div class="tick" aria-hidden="true">&#10003;</div>
+        <p>Your reply is already in — thank you.</p>
+        <button class="btn btn--quiet" id="changeReply">Change your reply</button>
       </div>
 
       <div class="actions">
@@ -479,7 +514,7 @@ const CONFIG = {
   address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
 
   dress: "Garden formal",
-  dressNote: "Something you'll be happy to sit in for hours.",
+  dressNote: "Wear the thing you've been saving.",
 
   rsvpBy: "Thursday, 1 October 2026",
 
@@ -513,7 +548,7 @@ set("rsvpBy", CONFIG.rsvpBy);
 const coverWeekday = new Date(CONFIG.startsAt).toLocaleDateString("en-ZA", {
   weekday: "long", timeZone: "Africa/Johannesburg"
 });
-set("coverLine", "We're making it official on a " + coverWeekday + " in late spring. The good part comes after — a long table, and you at it.");
+set("coverLine", "We're making it official on a " + coverWeekday + " in late spring, and we'd like you at the table after we do.");
 document.title = CONFIG.nameA + " & " + CONFIG.nameB + " — Signing Lunch";
 
 const mapsLink = $("factAddress");
@@ -534,7 +569,6 @@ $("openBtn").addEventListener("click", () => {
   const reveal = () => {
     cover.style.display = "none";
     invite.classList.add("is-open");
-    drawSprigs();
     setupReveals();
     initRsvp();
     if (!reduced) blossoms(16);
@@ -547,7 +581,10 @@ $("openBtn").addEventListener("click", () => {
 });
 
 /* baby's breath draws itself: stems first, then the buds open */
+let sprigsDrawn = false;
 function drawSprigs(){
+  if (sprigsDrawn) return;
+  sprigsDrawn = true;
   document.querySelectorAll(".sprig").forEach((sprig, s) => {
     sprig.querySelectorAll(".stems path").forEach((p, i) => {
       const len = p.getTotalLength();
@@ -570,6 +607,9 @@ function drawSprigs(){
     });
   });
 }
+
+/* drawn straight away, so the cover has life in it before anyone opens anything */
+drawSprigs();
 
 /* a handful of blossoms drift past, once */
 function blossoms(count){
@@ -729,8 +769,59 @@ function setupReveals(){
   draw();
 })();
 
+/* ---------- the fall thickens towards the sign-off ---------- */
+(function petals(){
+  if (reduced) return;
+  let budget = 30, last = 0;
+  addEventListener("scroll", () => {
+    if (budget <= 0) return;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (max <= 8) return;
+    const p = scrollY / max;
+    if (p < 0.6) return;
+    const now = performance.now();
+    /* the closer to the end, the shorter the gap between petals */
+    if (now - last < 420 - (p - 0.6) * 700) return;
+    last = now;
+    budget -= 1;
+    blossoms(1);
+  }, { passive: true });
+})();
+
+/* ---------- one reply per guest ----------
+   The flag is this browser's, so it is a courtesy rather than a lock:
+   it stops the common case of someone replying twice from the same phone,
+   and anyone who genuinely needs to change an answer can still say so. */
+const RSVP_KEY = "signing-lunch:replied";
+const hasReplied = () => { try { return !!localStorage.getItem(RSVP_KEY); } catch (e) { return false; } };
+const markReplied = () => { try { localStorage.setItem(RSVP_KEY, new Date().toISOString()); } catch (e) {} };
+
+/* Tally tells the parent page when a reply goes through, which covers the
+   case where the form is submitted without ever reaching the thank-you page */
+addEventListener("message", (e) => {
+  if (typeof e.origin === "string" && !e.origin.includes("tally.so")) return;
+  const payload = typeof e.data === "string" ? e.data : (e.data && e.data.event) || "";
+  if (String(payload).includes("Tally.formSubmitted")) markReplied();
+});
+
+$("changeReply").addEventListener("click", () => {
+  try { localStorage.removeItem(RSVP_KEY); } catch (e) {}
+  $("replied").hidden = true;
+  $("rsvpForm").hidden = false;
+  loadTally();
+});
+
 /* ---------- the reply form, embedded so nobody leaves the page ---------- */
 function initRsvp(){
+  if (hasReplied()){
+    $("rsvpForm").hidden = true;
+    $("replied").hidden = false;
+    return;
+  }
+  loadTally();
+}
+
+function loadTally(){
   const frame = $("rsvpFrame");
   if (!frame || frame.dataset.ready) return;
   frame.dataset.ready = "1";

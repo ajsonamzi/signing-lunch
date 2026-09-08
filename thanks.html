@@ -6,6 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#132A1C">
 <title>Thank you — Nande &amp; Ayanda</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -64,7 +66,32 @@
     to{opacity:1; transform:none;}
   }
 
-  .sprig{position:absolute; top:-8px; left:-12px; width:min(190px,40%); pointer-events:none;}
+  .sprig{
+    position:absolute; top:-8px; left:-12px; width:min(190px,40%); pointer-events:none;
+    animation:sway 9s ease-in-out 1.8s infinite;
+  }
+  @keyframes sway{
+    0%,100%{transform:rotate(0deg) translate3d(0,0,0);}
+    50%{transform:rotate(1.2deg) translate3d(0,-5px,0);}
+  }
+
+  /* each line arrives just after the one above it */
+  .rise{opacity:0; transform:translateY(14px);
+    animation:rise .9s cubic-bezier(.22,.9,.28,1) forwards;}
+  @keyframes rise{to{opacity:1; transform:none;}}
+
+  .blossoms{position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden;}
+  .blossom{
+    position:absolute; top:-4vh; border-radius:50%;
+    background:#FFFFFF; opacity:0;
+    box-shadow:0 0 6px rgba(255,255,255,.55);
+    animation:drift linear forwards;
+  }
+  @keyframes drift{
+    0%{opacity:0; transform:translate3d(0,0,0) scale(.7);}
+    12%{opacity:.9;}
+    100%{opacity:0; transform:translate3d(var(--dx),108vh,0) scale(1);}
+  }
 
   .eyebrow{
     font-family:var(--sans); font-weight:300; font-size:.76rem; letter-spacing:.24em;
@@ -145,6 +172,8 @@
   <p class="countdown" id="countdown"></p>
 </main>
 
+<div class="blossoms" id="blossoms" aria-hidden="true"></div>
+
 <script>
 /* mirrors the matching values in index.html's CONFIG */
 const EVENT = {
@@ -159,6 +188,63 @@ const EVENT = {
 };
 
 const $ = (id) => document.getElementById(id);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* reaching this page means a reply went through, so the invitation
+   knows not to offer the form again on this device */
+try { localStorage.setItem("signing-lunch:replied", new Date().toISOString()); } catch (e) {}
+
+/* the card's lines arrive one after another */
+if (!reduced){
+  document.querySelectorAll(".eyebrow, h1, .note, .rule, .actions, .countdown")
+    .forEach((el, i) => {
+      el.classList.add("rise");
+      el.style.animationDelay = (0.25 + i * 0.13) + "s";
+    });
+}
+
+/* baby's breath draws itself in, stems first */
+if (!reduced){
+  const sprig = document.querySelector(".sprig");
+  sprig.querySelectorAll("g:first-of-type path").forEach((p, i) => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+    p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
+      duration: 1100, delay: 260 + i * 110, fill: "forwards",
+      easing: "cubic-bezier(.35,.9,.35,1)"
+    });
+  });
+  sprig.querySelectorAll("circle").forEach((c, i) => {
+    c.style.transformOrigin = c.getAttribute("cx") + "px " + c.getAttribute("cy") + "px";
+    c.style.opacity = 0;
+    c.animate([{ opacity: 0, transform: "scale(.2)" }, { opacity: 1, transform: "scale(1)" }], {
+      duration: 620, delay: 900 + i * 55, fill: "forwards",
+      easing: "cubic-bezier(.2,.9,.3,1.2)"
+    });
+  });
+}
+
+/* a slow drift of blossoms, seeded now and topped up for a while */
+function blossoms(count){
+  const stage = $("blossoms");
+  for (let i = 0; i < count; i++){
+    const b = document.createElement("span");
+    const size = 3 + Math.random() * 5;
+    b.className = "blossom";
+    b.style.width = b.style.height = size + "px";
+    b.style.left = Math.random() * 100 + "vw";
+    b.style.setProperty("--dx", (Math.random() * 90 - 45) + "px");
+    b.style.animationDuration = (9 + Math.random() * 7) + "s";
+    b.style.animationDelay = (Math.random() * 4) + "s";
+    b.addEventListener("animationend", () => b.remove());
+    stage.appendChild(b);
+  }
+}
+if (!reduced){
+  blossoms(14);
+  setInterval(() => { if (!document.hidden) blossoms(1); }, 2600);
+}
 
 $("calBtn").addEventListener("click", () => {
   const stamp = (iso) => new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
