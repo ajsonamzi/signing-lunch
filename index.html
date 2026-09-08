@@ -217,11 +217,14 @@
     background:linear-gradient(90deg,transparent,var(--sage),transparent);
   }
 
+  /* flex rather than grid so a row that ends up with one fact left over
+     centres it instead of parking it in the first column */
   .facts{
-    display:grid; gap:clamp(1.6rem,4vw,2.4rem);
-    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    display:flex; flex-wrap:wrap; justify-content:center;
+    gap:clamp(1.6rem,4vw,2.4rem);
     max-width:var(--measure); margin:0 auto; text-align:center;
   }
+  .fact{flex:1 1 190px;}
   .fact__key{
     font-family:var(--sans); font-size:.74rem; letter-spacing:.16em; font-weight:400;
     color:var(--spring); margin:0 0 .5rem;
