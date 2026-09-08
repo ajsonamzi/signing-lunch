@@ -311,6 +311,16 @@
     font-style:italic; font-size:1.12rem; color:var(--moss); font-weight:300;
   }
 
+  /* deliberately quiet: the gift list is a side door, not part of the invitation */
+  .aside{text-align:center; margin:2.2rem 0 0;}
+  .aside a{
+    font-family:var(--sans); font-size:.78rem; letter-spacing:.08em; font-weight:300;
+    color:var(--ink-soft); text-decoration:none;
+    border-bottom:1px solid rgba(60,100,68,.28); padding-bottom:2px;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .aside a:hover, .aside a:focus-visible{color:var(--moss); border-color:var(--moss);}
+
   :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
 
   /* ---------- drifting blossoms ---------- */
@@ -494,6 +504,7 @@
 
     <p class="countdown" id="countdown"></p>
     <p class="signoff">With love, and a chair with your name on it.</p>
+    <p class="aside"><a href="gifts.html">If you'd like to bring something</a></p>
   </article>
 </main>
 
