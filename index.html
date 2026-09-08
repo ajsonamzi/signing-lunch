@@ -272,8 +272,29 @@
     font-size:1.02rem; color:var(--moss); margin:1.1rem 0 0; min-height:1.4em; font-style:italic;
   }
 
-  .rsvp__form{max-width:24rem; margin:.2rem auto 1.4rem;}
-  .rsvp__form iframe{width:100%; border:0; display:block; min-height:320px;}
+  .rsvp__form{max-width:22rem; margin:.2rem auto 1.4rem; text-align:left;}
+  .field{display:block; margin:0 0 1.1rem;}
+  .field span{
+    font-family:var(--sans); font-size:.72rem; letter-spacing:.15em; color:var(--moss);
+    display:block; margin-bottom:.45rem; text-transform:uppercase;
+  }
+  .field input{
+    width:100%; font-family:var(--serif); font-size:1.1rem; color:var(--ink);
+    background:var(--paper); border:1px solid rgba(60,100,68,.28); border-radius:2px;
+    padding:.7rem .85rem;
+  }
+  .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
+  .choices{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin:0 0 1.3rem;}
+  .choice{
+    font-family:var(--sans); font-size:.88rem; font-weight:400; color:var(--pine);
+    background:transparent; border:1px solid rgba(60,100,68,.35); border-radius:999px;
+    padding:.7rem 1.35rem; cursor:pointer;
+    transition:background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .choice:hover{border-color:var(--moss); background:rgba(127,165,92,.14);}
+  .choice[aria-pressed="true"]{background:var(--pine); color:var(--paper); border-color:var(--pine);}
+  .btn[disabled]{opacity:.42; pointer-events:none;}
+  .status a{color:var(--moss);}
 
   .replied{max-width:24rem; margin:.2rem auto 1.4rem; padding:1.6rem 1rem;}
   .replied p{font-size:1.06rem; color:var(--pine); font-weight:300; margin:0 0 1.2rem; line-height:1.6;}
@@ -488,7 +509,20 @@
       <p class="rsvp__note">One reply each, please — even if you're arriving together; we lay a place for every name. If we haven't heard from you by then, we'll take it as a no, and be sorry to miss you.</p>
 
       <div class="rsvp__form" id="rsvpForm">
-        <iframe id="rsvpFrame" title="RSVP" loading="lazy" width="100%" height="320"></iframe>
+        <label class="field">
+          <span>Name and surname</span>
+          <input type="text" id="guestName" autocomplete="name" maxlength="120"
+                 placeholder="Who's replying?">
+        </label>
+
+        <div class="choices" role="group" aria-label="Will you be joining us?">
+          <button type="button" class="choice" id="choiceYes" aria-pressed="false">Joyfully accepts</button>
+          <button type="button" class="choice" id="choiceNo" aria-pressed="false">Sadly declines</button>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn" id="sendBtn" disabled>Send your reply</button>
+        </div>
       </div>
 
       <div class="replied" id="replied" hidden>
@@ -536,8 +570,8 @@ const CONFIG = {
 
   rsvpBy: "Thursday, 1 October 2026",
 
-  // Replies collect here so they land in one list.
-  rsvpForm: "https://tally.so/r/Me4890",
+  // Replies and gift claims both land in one Google Sheet, via this script.
+  endpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
 
   // WhatsApp number, here for questions rather than replies.
   whatsapp: "27607415890",
@@ -814,50 +848,74 @@ const RSVP_KEY = "signing-lunch:replied";
 const hasReplied = () => { try { return !!localStorage.getItem(RSVP_KEY); } catch (e) { return false; } };
 const markReplied = () => { try { localStorage.setItem(RSVP_KEY, new Date().toISOString()); } catch (e) {} };
 
-/* Tally tells the parent page when a reply goes through, which covers the
-   case where the form is submitted without ever reaching the thank-you page */
-addEventListener("message", (e) => {
-  if (typeof e.origin === "string" && !e.origin.includes("tally.so")) return;
-  const payload = typeof e.data === "string" ? e.data : (e.data && e.data.event) || "";
-  if (String(payload).includes("Tally.formSubmitted")) markReplied();
-});
-
 $("changeReply").addEventListener("click", () => {
   try { localStorage.removeItem(RSVP_KEY); } catch (e) {}
   $("replied").hidden = true;
   $("rsvpForm").hidden = false;
-  loadTally();
+  answer = null;
+  yes.setAttribute("aria-pressed", "false");
+  no.setAttribute("aria-pressed", "false");
+  refresh();
 });
 
-/* ---------- the reply form, embedded so nobody leaves the page ---------- */
+/* ---------- the reply form ----------
+   Replies go straight to our own Google Sheet, so nobody leaves the page
+   and there is no third-party form sitting in the middle of the invitation. */
 function initRsvp(){
   if (hasReplied()){
     $("rsvpForm").hidden = true;
     $("replied").hidden = false;
-    return;
   }
-  loadTally();
 }
 
-function loadTally(){
-  const frame = $("rsvpFrame");
-  if (!frame || frame.dataset.ready) return;
-  frame.dataset.ready = "1";
-  const src = CONFIG.rsvpForm.replace("/r/", "/embed/") +
-    "?hideTitle=1&transparentBackground=1&dynamicHeight=1";
-  frame.setAttribute("data-tally-src", src);
-  const go = () => {
-    if (window.Tally && typeof window.Tally.loadEmbeds === "function") window.Tally.loadEmbeds();
-    /* if their script never arrives, point the frame straight at the form
-       so replies still reach us rather than failing quietly */
-    if (!frame.src) frame.src = src;
-  };
-  if (window.Tally) return go();
-  const s = document.createElement("script");
-  s.src = "https://tally.so/widgets/embed.js";
-  s.onload = go; s.onerror = go;
-  document.body.appendChild(s);
+let answer = null;
+const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn");
+
+function refresh(){
+  send.disabled = !(answer && $("guestName").value.trim());
 }
+function choose(which){
+  answer = which;
+  yes.setAttribute("aria-pressed", String(which === "yes"));
+  no.setAttribute("aria-pressed", String(which === "no"));
+  refresh();
+}
+yes.addEventListener("click", () => choose("yes"));
+no.addEventListener("click", () => choose("no"));
+$("guestName").addEventListener("input", refresh);
+
+/* If the reply cannot be sent we say so and hand them WhatsApp, rather than
+   pretending it worked. A lost reply is worse than an obvious failure. */
+function fallbackLink(name){
+  const msg = answer === "yes"
+    ? "Hi Nande! It's " + name + ". Counting me in for the signing lunch."
+    : "Hi Nande! It's " + name + ". Sadly I can't make the signing lunch.";
+  return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg);
+}
+
+send.addEventListener("click", async () => {
+  const name = $("guestName").value.trim();
+  if (!name || !answer) return;
+  send.disabled = true;
+  status.textContent = "Sending your reply…";
+  try {
+    const r = await fetch(CONFIG.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ name: name, attending: answer })
+    });
+    const d = await r.json();
+    if (!d || !d.ok) throw new Error((d && d.error) || "failed");
+    markReplied();
+    status.textContent = "";
+    $("rsvpForm").hidden = true;
+    $("replied").hidden = false;
+  } catch (e) {
+    send.disabled = false;
+    status.innerHTML = "That didn't send — please try again, or " +
+      '<a href="' + fallbackLink(name) + '" target="_blank" rel="noopener">tell Nande on WhatsApp</a>.';
+  }
+});
 </script>
 </body>
 </html>
