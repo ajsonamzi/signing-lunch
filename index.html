@@ -9,8 +9,8 @@
 
 <!-- link preview (WhatsApp, iMessage, Slack, socials) -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Ayanda &amp; Nande">
-<meta property="og:title" content="Ayanda &amp; Nande &mdash; a signing &amp; a long lunch">
+<meta property="og:site_name" content="Nande &amp; Ayanda">
+<meta property="og:title" content="Nande &amp; Ayanda &mdash; a signing lunch">
 <meta property="og:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 11:30.">
 <meta property="og:url" content="https://ajsonamzi.github.io/signing-lunch/">
 <meta property="og:image" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
@@ -18,13 +18,13 @@
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Ayanda and Nande, Sunday 8 November 2026">
+<meta property="og:image:alt" content="Nande and Ayanda, Sunday 8 November 2026">
 <meta property="og:locale" content="en_ZA">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ayanda &amp; Nande &mdash; a signing &amp; a long lunch">
+<meta name="twitter:title" content="Nande &amp; Ayanda &mdash; a signing lunch">
 <meta name="twitter:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 11:30.">
 <meta name="twitter:image" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
-<title>Ayanda &amp; Nande — Signing Lunch</title>
+<title>Nande &amp; Ayanda — Signing Lunch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -196,20 +196,6 @@
   }
   .fact__sub a:hover, .fact__sub a:focus-visible{color:var(--pine); border-color:var(--pine);}
 
-  .day{
-    max-width:var(--measure); margin:0 auto; padding:0;
-    list-style:none;
-  }
-  .day__item{
-    display:grid; grid-template-columns:5.2rem 1fr; gap:1.1rem;
-    padding:.85rem 0; align-items:baseline;
-    border-bottom:1px solid rgba(60,100,68,.14);
-  }
-  .day__item:last-child{border-bottom:0;}
-  .day__time{font-family:var(--sans); font-size:.9rem; color:var(--moss); letter-spacing:.03em;}
-  .day__what{font-size:1.15rem; color:var(--pine);}
-  .day__what span{display:block; font-size:.98rem; color:var(--ink-soft); font-weight:300;}
-
   .heading{
     font-size:1.05rem; font-weight:400; letter-spacing:.02em; color:var(--moss);
     text-align:center; margin:0 0 1.4rem; font-style:italic;
@@ -284,9 +270,6 @@
     transform:translateX(-130%);}
   .open-btn:hover::after{transform:translateX(130%); transition:transform .95s ease;}
 
-  .rsvp__form{max-width:24rem; margin:.2rem auto 1.4rem;}
-  .rsvp__form iframe{width:100%; border:0; display:block; min-height:250px;}
-
   .countdown{
     text-align:center; font-size:1.02rem; color:var(--ink-soft); font-weight:300;
     margin:2.6rem auto 0; max-width:var(--measure);
@@ -315,7 +298,6 @@
   }
 
   @media (max-width:520px){
-    .day__item{grid-template-columns:4.4rem 1fr; gap:.8rem;}
     .sprig--tl{width:44%;}
     .sprig--br{width:48%;}
   }
@@ -388,17 +370,17 @@
   <!-- CLOSED -->
   <section class="cover" id="cover">
     <p class="cover__season" id="coverSeason">the last days of spring</p>
-    <h1 class="cover__names"><span id="coverA">Ayanda</span><em>&amp;</em><span id="coverB">Nande</span></h1>
-    <p class="cover__line" id="coverLine">We're signing our names in late spring, and we'd like you at the table when we do.</p>
+    <h1 class="cover__names"><span id="coverA">Nande</span><em>&amp;</em><span id="coverB">Ayanda</span></h1>
+    <p class="cover__line" id="coverLine">We're making it official in late spring, and we'd like you at the table when we do.</p>
     <button class="open-btn" id="openBtn"><span class="dot"></span>Open the invitation</button>
   </section>
 
   <!-- OPEN -->
   <article class="invite" id="invite" aria-live="polite">
     <header class="masthead">
-      <p class="masthead__season">a signing &amp; a long lunch</p>
-      <h1 class="masthead__names"><span id="nameA">Ayanda</span><span class="masthead__amp">and</span><span id="nameB">Nande</span></h1>
-      <p class="masthead__note" id="blurb">Spring is nearly out of days, so we're spending one of the last ones making it official — a small signing under the trees, then lunch that runs as long as everyone is happy to sit.</p>
+      <p class="masthead__season">a signing lunch</p>
+      <h1 class="masthead__names"><span id="nameA">Nande</span><span class="masthead__amp">and</span><span id="nameB">Ayanda</span></h1>
+      <p class="masthead__note" id="blurb">Spring is nearly out of days, so we're spending one of the last ones making it official under the trees, then a long lunch that runs for as long as everyone is happy to sit.</p>
     </header>
 
     <hr class="rule">
@@ -417,14 +399,9 @@
       <div class="fact">
         <p class="fact__key">What to wear</p>
         <p class="fact__val" id="factDress">Garden formal</p>
-        <p class="fact__sub" id="factDressNote">Greens, creams, soft neutrals. Heels sink in grass.</p>
+        <p class="fact__sub" id="factDressNote">Heels sink in grass, so plan accordingly.</p>
       </div>
     </section>
-
-    <hr class="rule">
-
-    <h2 class="heading">How the day runs</h2>
-    <ol class="day" id="dayList"></ol>
 
     <hr class="rule">
 
@@ -432,12 +409,18 @@
     <section class="rsvp">
       <p class="rsvp__by">Please reply by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we can set the table.</p>
 
-      <div class="rsvp__form">
-        <iframe id="rsvpFrame" title="RSVP" loading="lazy" width="100%" height="250"
-                frameborder="0" marginheight="0" marginwidth="0"></iframe>
+      <label class="field">
+        <span>Your name</span>
+        <input type="text" id="guestName" placeholder="Who's replying?" autocomplete="name">
+      </label>
+
+      <div class="choices" role="group" aria-label="Will you be joining us?">
+        <button class="choice" id="choiceYes" aria-pressed="false">Joyfully accepts</button>
+        <button class="choice" id="choiceNo" aria-pressed="false">Sadly declines</button>
       </div>
 
       <div class="actions">
+        <a class="btn" id="sendBtn" href="#" aria-disabled="true">Send your reply</a>
         <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
 
@@ -459,10 +442,10 @@
    Edit the values below and the invitation updates itself.
    ================================================================ */
 const CONFIG = {
-  nameA: "Ayanda",
-  nameB: "Nande",
+  nameA: "Nande",
+  nameB: "Ayanda",
 
-  blurb: "Spring is nearly out of days, so we're spending one of the last ones making it official — a small signing under the trees, then lunch that runs as long as everyone is happy to sit.",
+  blurb: "Spring is nearly out of days, so we're spending one of the last ones making it official under the trees, then a long lunch that runs for as long as everyone is happy to sit.",
 
   dateLabel: "Sunday, 8 November 2026",
   timeLabel: "Arrive from 11:30",
@@ -471,27 +454,16 @@ const CONFIG = {
   address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
 
   dress: "Garden formal",
-  dressNote: "Greens, creams, soft neutrals. Heels sink in grass.",
+  dressNote: "Heels sink in grass, so plan accordingly.",
 
   rsvpBy: "Thursday, 1 October 2026",
-
-  // Replies collect here so they land in one list.
-  rsvpForm: "https://tally.so/r/Me4890",
 
   // WhatsApp number for replies, country code first, digits only (SA: 27...)
   whatsapp: "27607415890",
 
   // Used for the countdown and the calendar file. +02:00 is South African time.
   startsAt: "2026-11-08T11:30:00+02:00",
-  endsAt:   "2026-11-08T17:00:00+02:00",
-
-  schedule: [
-    { time: "11:30", what: "Arrival",  detail: "Something cold to drink in the garden." },
-    { time: "12:00", what: "The signing", detail: "Short and sweet. Please be seated by 11:55." },
-    { time: "12:30", what: "Photographs", detail: "Family first, then everyone." },
-    { time: "13:00", what: "Lunch",   detail: "Long table, a few words, no rush." },
-    { time: "16:00", what: "Slow goodbyes", detail: "Coffee, cake, and the last of the spring light." }
-  ]
+  endsAt:   "2026-11-08T17:00:00+02:00"
 };
 
 /* ---------- fill the page from CONFIG ---------- */
@@ -513,7 +485,7 @@ set("rsvpBy", CONFIG.rsvpBy);
 const coverWeekday = new Date(CONFIG.startsAt).toLocaleDateString("en-ZA", {
   weekday: "long", timeZone: "Africa/Johannesburg"
 });
-set("coverLine", "We're signing our names on a " + coverWeekday + " in late spring, and we'd like you at the table when we do.");
+set("coverLine", "We're making it official on a " + coverWeekday + " in late spring, and we'd like you at the table when we do.");
 document.title = CONFIG.nameA + " & " + CONFIG.nameB + " — Signing Lunch";
 
 const mapsLink = $("factAddress");
@@ -523,12 +495,6 @@ if (mapsLink){
   // if it's installed, and the Google Maps site in any browser if it isn't.
   mapsLink.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(CONFIG.venue + ", " + CONFIG.address);
 }
-
-$("dayList").innerHTML = CONFIG.schedule.map(s => `
-  <li class="day__item">
-    <span class="day__time">${s.time}</span>
-    <span class="day__what">${s.what}<span>${s.detail}</span></span>
-  </li>`).join("");
 
 /* ---------- opening the card ---------- */
 const cover = $("cover");
@@ -542,7 +508,6 @@ $("openBtn").addEventListener("click", () => {
     invite.classList.add("is-open");
     drawSprigs();
     setupReveals();
-    initRsvp();
     if (!reduced) blossoms(16);
     /* if the opening animation is ever throttled by the browser, make sure the
        invitation still ends up fully visible rather than stuck part-faded */
@@ -595,10 +560,40 @@ function blossoms(count){
 }
 
 /* ---------- RSVP ---------- */
-const status = $("status");
+let answer = null;
+const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn"), status = $("status");
 
-/* Replies are collected in the form embedded above, so nobody leaves the page.
-   The WhatsApp number is Nande's, here for questions rather than replies. */
+function choose(which){
+  answer = which;
+  yes.setAttribute("aria-pressed", String(which === "yes"));
+  no.setAttribute("aria-pressed", String(which === "no"));
+  updateSend();
+}
+yes.addEventListener("click", () => choose("yes"));
+no.addEventListener("click", () => choose("no"));
+$("guestName").addEventListener("input", updateSend);
+
+function updateSend(){
+  const name = $("guestName").value.trim();
+  const ready = Boolean(answer && name);
+  send.setAttribute("aria-disabled", String(!ready));
+  if (!ready){
+    status.textContent = "";
+    send.removeAttribute("href");
+    return;
+  }
+  const message = answer === "yes"
+    ? `Hi! It's ${name}. Count me in for the signing lunch on ${CONFIG.dateLabel}.`
+    : `Hi! It's ${name}. I can't make the signing lunch on ${CONFIG.dateLabel}, but I'm celebrating from here.`;
+  send.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
+  send.target = "_blank";
+  send.rel = "noopener";
+  status.textContent = answer === "yes"
+    ? "Lovely. Tap send and your reply opens in WhatsApp."
+    : "Understood, and thank you for telling us. Tap send to let us know.";
+}
+
+/* WhatsApp number is Nande's, here for questions rather than replies. */
 const waLink = $("waLink");
 if (waLink) waLink.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" +
   encodeURIComponent("Hi Nande! A question about the signing lunch on " + CONFIG.dateLabel + ".");
@@ -651,10 +646,9 @@ function startCountdown(){
 
 /* ---------- each part arrives as you reach it ---------- */
 function setupReveals(){
-  const items = [...invite.querySelectorAll(".masthead, .rule, .facts .fact, .heading, .day__item, .rsvp, .countdown, .signoff")];
+  const items = [...invite.querySelectorAll(".masthead, .rule, .facts .fact, .heading, .rsvp, .countdown, .signoff")];
   items.forEach(el => el.classList.add("reveal"));
   invite.querySelectorAll(".facts .fact").forEach((el, i) => el.dataset.d = i * 110);
-  invite.querySelectorAll(".day__item").forEach((el, i) => el.dataset.d = i * 80);
   if (reduced || !("IntersectionObserver" in window)){
     items.forEach(el => el.classList.add("is-in"));
     startCountdown();
@@ -696,27 +690,6 @@ function setupReveals(){
     });
   }, { passive: true });
 })();
-
-/* ---------- the reply form, embedded so nobody leaves the page ---------- */
-function initRsvp(){
-  const frame = $("rsvpFrame");
-  if (!frame || frame.dataset.ready) return;
-  frame.dataset.ready = "1";
-  const src = CONFIG.rsvpForm.replace("/r/", "/embed/") +
-    "?hideTitle=1&transparentBackground=1&dynamicHeight=1";
-  frame.setAttribute("data-tally-src", src);
-  const go = () => {
-    if (window.Tally && typeof window.Tally.loadEmbeds === "function") window.Tally.loadEmbeds();
-    /* if their script never arrives, point the frame straight at the form
-       so replies still reach us rather than failing quietly */
-    if (!frame.src) frame.src = src;
-  };
-  if (window.Tally) return go();
-  const s = document.createElement("script");
-  s.src = "https://tally.so/widgets/embed.js";
-  s.onload = go; s.onerror = go;
-  document.body.appendChild(s);
-}
 </script>
 </body>
 </html>
