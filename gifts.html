@@ -154,7 +154,7 @@ const CONFIG = {
      tracking: the page will then show what is already spoken for to
      everyone. Left empty, claims are sent by WhatsApp instead and
      nothing is shared between guests. */
-  claimEndpoint: "",
+  claimEndpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
 
   gifts: [
     { name: "Kenwood stand mixer", note: "The big one — a few of you could go in together." },
@@ -243,16 +243,33 @@ function claim(gift){
     return;
   }
 
+  /* We wait for the answer rather than firing and hoping: it lets us tell
+     someone honestly when another guest claimed the same thing first. */
+  status.textContent = "Just a moment\u2026";
   fetch(CONFIG.claimEndpoint, {
     method: "POST",
-    mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ name, gift: gift.name })
-  }).catch(() => {});
-
-  if (!gift.many) claimed.add(gift.name);
-  status.textContent = "Thank you — we've put your name against it.";
-  render();
+    body: JSON.stringify({ name: name, gift: gift.name, many: !!gift.many })
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d && d.ok){
+        if (!gift.many) claimed.add(gift.name);
+        status.textContent = "Thank you — we've put your name against it.";
+      } else if (d && d.error === "taken"){
+        claimed.add(gift.name);
+        status.textContent = "Someone just beat you to that one — here is what is left.";
+      } else {
+        throw new Error("failed");
+      }
+      render();
+    })
+    .catch(() => {
+      status.innerHTML = "That didn't save — please try again, or " +
+        '<a href="https://wa.me/' + CONFIG.whatsapp + '?text=' +
+        encodeURIComponent(message) +
+        '" target="_blank" rel="noopener">tell us on WhatsApp</a>.';
+    });
 }
 
 /* what other guests have already spoken for */
