@@ -616,7 +616,7 @@ function startCountdown(){
   if (!el) return;
   const days = Math.ceil((new Date(CONFIG.startsAt) - new Date()) / 86400000);
   if (days < 0){ el.textContent = ""; return; }
-  if (days === 0){ el.innerHTML = "<strong>Today.</strong> See you under the trees."; return; }
+  if (days === 0){ el.innerHTML = "<strong>Today.</strong> See you at the table."; return; }
   if (days === 1){ el.innerHTML = "<strong>Tomorrow.</strong>"; return; }
   const write = (v) => { el.innerHTML = "<strong>" + v + " days</strong> until we sign."; };
   if (reduced){ write(days); return; }
