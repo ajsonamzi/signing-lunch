@@ -893,27 +893,45 @@ function fallbackLink(name){
   return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg);
 }
 
+/* One id per reply, kept across retries. Google can be slow enough that a
+   reply is written but the phone gives up waiting, so if someone taps send
+   again we must not count them twice: the script ignores an id it has seen. */
+let rid = null;
+const newRid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
 send.addEventListener("click", async () => {
   const name = $("guestName").value.trim();
   if (!name || !answer) return;
+  if (!rid) rid = newRid();
   send.disabled = true;
   status.textContent = "Sending your reply…";
+  const slow = setTimeout(() => {
+    status.textContent = "Still sending — this can take a moment.";
+  }, 6000);
+  const ctrl = new AbortController();
+  const bail = setTimeout(() => ctrl.abort(), 25000);
   try {
     const r = await fetch(CONFIG.endpoint, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ name: name, attending: answer })
+      body: JSON.stringify({ name: name, attending: answer, rid: rid }),
+      signal: ctrl.signal
     });
     const d = await r.json();
     if (!d || !d.ok) throw new Error((d && d.error) || "failed");
+    rid = null;
     markReplied();
     status.textContent = "";
     $("rsvpForm").hidden = true;
     $("replied").hidden = false;
   } catch (e) {
     send.disabled = false;
-    status.innerHTML = "That didn't send — please try again, or " +
+    status.innerHTML = "That is taking longer than it should. Your reply may " +
+      "still have reached us — tapping send again is safe, or " +
       '<a href="' + fallbackLink(name) + '" target="_blank" rel="noopener">tell Nande on WhatsApp</a>.';
+  } finally {
+    clearTimeout(slow);
+    clearTimeout(bail);
   }
 });
 </script>
