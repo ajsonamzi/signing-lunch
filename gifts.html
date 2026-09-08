@@ -246,10 +246,16 @@ function claim(gift){
   /* We wait for the answer rather than firing and hoping: it lets us tell
      someone honestly when another guest claimed the same thing first. */
   status.textContent = "Just a moment\u2026";
+  /* Same id if they tap again after a slow response, so one gift cannot be
+     recorded twice against the same person. */
+  if (!gift._rid) gift._rid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), 25000);
   fetch(CONFIG.claimEndpoint, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ name: name, gift: gift.name, many: !!gift.many })
+    body: JSON.stringify({ name: name, gift: gift.name, many: !!gift.many, rid: gift._rid }),
+    signal: ctrl.signal
   })
     .then(r => r.json())
     .then(d => {
