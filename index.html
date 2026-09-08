@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 11:30.">
+<meta name="description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 12:00.">
 <meta name="theme-color" content="#132A1C">
 
 <!-- link preview (WhatsApp, iMessage, Slack, socials) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nande &amp; Ayanda">
 <meta property="og:title" content="Nande &amp; Ayanda &mdash; a signing lunch">
-<meta property="og:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 11:30.">
+<meta property="og:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 12:00.">
 <meta property="og:url" content="https://ajsonamzi.github.io/signing-lunch/">
 <meta property="og:image" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
 <meta property="og:image:secure_url" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
@@ -22,7 +22,7 @@
 <meta property="og:locale" content="en_ZA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Nande &amp; Ayanda &mdash; a signing lunch">
-<meta name="twitter:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 11:30.">
+<meta name="twitter:description" content="Sunday, 8 November 2026 &middot; GROUND The Venue, Muldersdrift. Arrive from 12:00.">
 <meta name="twitter:image" content="https://ajsonamzi.github.io/signing-lunch/preview.jpg">
 <title>Nande &amp; Ayanda — Signing Lunch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,6 +74,21 @@
     position:fixed; inset:0; pointer-events:none; z-index:0;
     opacity:.28; filter:blur(1.5px);
   }
+
+  /* a vine that grows along the margins as the page is scrolled */
+  .vine{
+    position:fixed; top:0; height:100vh; width:132px;
+    pointer-events:none; z-index:0; opacity:.6;
+  }
+  .vine--left{left:0;}
+  .vine--right{right:0; transform:scaleX(-1);}
+  .vine__bud{
+    opacity:0; transform:scale(.2);
+    transform-box:fill-box; transform-origin:center;
+    transition:opacity .55s ease, transform .55s cubic-bezier(.2,.9,.3,1.2);
+  }
+  /* the card needs the full width below this, so the margins go */
+  @media (max-width:1000px){ .vine{display:none;} }
 
   /* ============================================================
      THE CARD
@@ -213,28 +228,6 @@
   .rsvp__by{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:0 0 1.5rem;}
   .rsvp__by strong{font-weight:500; color:var(--pine);}
 
-  .field{display:block; max-width:22rem; margin:0 auto 1.2rem; text-align:left;}
-  .field span{
-    font-family:var(--sans); font-size:.74rem; letter-spacing:.14em; color:var(--moss);
-    display:block; margin-bottom:.45rem;
-  }
-  .field input{
-    width:100%; font-family:var(--serif); font-size:1.1rem; color:var(--ink);
-    background:var(--paper); border:1px solid rgba(60,100,68,.28); border-radius:2px;
-    padding:.7rem .85rem;
-  }
-  .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
-
-  .choices{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.4rem;}
-  .choice{
-    font-family:var(--sans); font-size:.88rem; font-weight:400; color:var(--pine);
-    background:transparent; border:1px solid rgba(60,100,68,.35); border-radius:999px;
-    padding:.7rem 1.35rem; cursor:pointer;
-    transition:background .25s ease, color .25s ease, border-color .25s ease;
-  }
-  .choice:hover{border-color:var(--moss); background:rgba(127,165,92,.14);}
-  .choice[aria-pressed="true"]{background:var(--pine); color:var(--paper); border-color:var(--pine);}
-
   .actions{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;}
   .btn{
     font-family:var(--sans); font-size:.88rem; letter-spacing:.04em;
@@ -250,6 +243,9 @@
   .status{
     font-size:1.02rem; color:var(--moss); margin:1.1rem 0 0; min-height:1.4em; font-style:italic;
   }
+
+  .rsvp__form{max-width:24rem; margin:.2rem auto 1.4rem;}
+  .rsvp__form iframe{width:100%; border:0; display:block; min-height:320px;}
 
   .rsvp__ask{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:1.3rem 0 0;}
   .rsvp__ask a{color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
@@ -305,6 +301,8 @@
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none !important; transition:none !important;}
     .blossoms{display:none;}
+    /* the vine is never drawn in, so show it whole rather than as bare stems */
+    .vine__bud{opacity:1; transform:none;}
   }
 </style>
 </head>
@@ -325,6 +323,31 @@
     <circle cx="268" cy="170" r="5"/><circle cx="250" cy="340" r="4"/><circle cx="175" cy="160" r="4"/>
     <circle cx="932" cy="185" r="5"/><circle cx="950" cy="360" r="4"/><circle cx="1025" cy="175" r="4"/>
     <circle cx="615" cy="560" r="4"/>
+  </g>
+</svg>
+
+<!-- climbs as you scroll; the twin on the right edge is cloned in script -->
+<svg class="vine vine--left" viewBox="0 0 132 1000" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+  <g fill="none" stroke="#7FA55C" stroke-width="1.6" stroke-linecap="round">
+    <path class="vine__stem" d="M80 -10 C 30 110, 106 210, 54 330 C 12 440, 98 545, 46 665 C 10 775, 90 875, 62 1010"/>
+    <path d="M64 122 C 46 98, 28 90, 12 94"/>
+    <path d="M94 252 C 106 228, 118 216, 129 214"/>
+    <path d="M41 432 C 25 412, 13 402, 3 402"/>
+    <path d="M88 602 C 101 580, 115 570, 127 568"/>
+    <path d="M35 802 C 21 784, 11 774, 3 772"/>
+  </g>
+  <g fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".7">
+    <circle class="vine__bud" data-at=".10" cx="12" cy="94" r="6"/>
+    <circle class="vine__bud" data-at=".12" cx="3" cy="106" r="3.6"/>
+    <circle class="vine__bud" data-at=".13" cx="22" cy="104" r="3.2"/>
+    <circle class="vine__bud" data-at=".25" cx="129" cy="214" r="6.4"/>
+    <circle class="vine__bud" data-at=".27" cx="121" cy="226" r="3.8"/>
+    <circle class="vine__bud" data-at=".43" cx="3" cy="402" r="6"/>
+    <circle class="vine__bud" data-at=".45" cx="13" cy="392" r="3.6"/>
+    <circle class="vine__bud" data-at=".60" cx="127" cy="568" r="6.6"/>
+    <circle class="vine__bud" data-at=".62" cx="119" cy="580" r="3.6"/>
+    <circle class="vine__bud" data-at=".80" cx="3" cy="772" r="6"/>
+    <circle class="vine__bud" data-at=".82" cx="13" cy="784" r="3.4"/>
   </g>
 </svg>
 
@@ -371,7 +394,7 @@
   <section class="cover" id="cover">
     <p class="cover__season" id="coverSeason">the last days of spring</p>
     <h1 class="cover__names"><span id="coverA">Nande</span><em>&amp;</em><span id="coverB">Ayanda</span></h1>
-    <p class="cover__line" id="coverLine">We're making it official in late spring, and we'd like you at the table when we do.</p>
+    <p class="cover__line" id="coverLine">We're making it official in late spring, and we'd like you at the table after we do.</p>
     <button class="open-btn" id="openBtn"><span class="dot"></span>Open the invitation</button>
   </section>
 
@@ -380,7 +403,7 @@
     <header class="masthead">
       <p class="masthead__season">a signing lunch</p>
       <h1 class="masthead__names"><span id="nameA">Nande</span><span class="masthead__amp">and</span><span id="nameB">Ayanda</span></h1>
-      <p class="masthead__note" id="blurb">Spring is nearly out of days, so we're spending one of the last ones making it official under the trees, then a long lunch that runs for as long as everyone is happy to sit.</p>
+      <p class="masthead__note" id="blurb">By November spring will be nearly out of days, so we're spending one of the last ones making it official — and once that part is done, a long lunch that runs for as long as everyone is happy to sit.</p>
     </header>
 
     <hr class="rule">
@@ -389,7 +412,7 @@
       <div class="fact">
         <p class="fact__key">The day</p>
         <p class="fact__val" id="factDate">Sunday, 8 November 2026</p>
-        <p class="fact__sub" id="factTime">Arrive from 11:30</p>
+        <p class="fact__sub" id="factTime">Arrive from 12:00</p>
       </div>
       <div class="fact">
         <p class="fact__key">The place</p>
@@ -399,7 +422,6 @@
       <div class="fact">
         <p class="fact__key">What to wear</p>
         <p class="fact__val" id="factDress">Garden formal</p>
-        <p class="fact__sub" id="factDressNote">Heels sink in grass, so plan accordingly.</p>
       </div>
     </section>
 
@@ -409,18 +431,11 @@
     <section class="rsvp">
       <p class="rsvp__by">Please reply by <strong id="rsvpBy">Friday, 30 October 2026</strong> so we can set the table.</p>
 
-      <label class="field">
-        <span>Your name</span>
-        <input type="text" id="guestName" placeholder="Who's replying?" autocomplete="name">
-      </label>
-
-      <div class="choices" role="group" aria-label="Will you be joining us?">
-        <button class="choice" id="choiceYes" aria-pressed="false">Joyfully accepts</button>
-        <button class="choice" id="choiceNo" aria-pressed="false">Sadly declines</button>
+      <div class="rsvp__form">
+        <iframe id="rsvpFrame" title="RSVP" loading="lazy" width="100%" height="320"></iframe>
       </div>
 
       <div class="actions">
-        <a class="btn" id="sendBtn" href="#" aria-disabled="true">Send your reply</a>
         <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
 
@@ -445,24 +460,26 @@ const CONFIG = {
   nameA: "Nande",
   nameB: "Ayanda",
 
-  blurb: "Spring is nearly out of days, so we're spending one of the last ones making it official under the trees, then a long lunch that runs for as long as everyone is happy to sit.",
+  blurb: "By November spring will be nearly out of days, so we're spending one of the last ones making it official — and once that part is done, a long lunch that runs for as long as everyone is happy to sit.",
 
   dateLabel: "Sunday, 8 November 2026",
-  timeLabel: "Arrive from 11:30",
+  timeLabel: "Arrive from 12:00",
 
   venue: "GROUND The Venue",
   address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
 
   dress: "Garden formal",
-  dressNote: "Heels sink in grass, so plan accordingly.",
 
   rsvpBy: "Thursday, 1 October 2026",
 
-  // WhatsApp number for replies, country code first, digits only (SA: 27...)
+  // Replies collect here so they land in one list.
+  rsvpForm: "https://tally.so/r/Me4890",
+
+  // WhatsApp number, here for questions rather than replies.
   whatsapp: "27607415890",
 
   // Used for the countdown and the calendar file. +02:00 is South African time.
-  startsAt: "2026-11-08T11:30:00+02:00",
+  startsAt: "2026-11-08T12:00:00+02:00",
   endsAt:   "2026-11-08T17:00:00+02:00"
 };
 
@@ -477,7 +494,6 @@ set("factDate", CONFIG.dateLabel);
 set("factTime", CONFIG.timeLabel);
 set("factVenue", CONFIG.venue);
 set("factDress", CONFIG.dress);
-set("factDressNote", CONFIG.dressNote);
 set("rsvpBy", CONFIG.rsvpBy);
 
 /* The cover weekday is derived from startsAt, never typed by hand,
@@ -485,7 +501,7 @@ set("rsvpBy", CONFIG.rsvpBy);
 const coverWeekday = new Date(CONFIG.startsAt).toLocaleDateString("en-ZA", {
   weekday: "long", timeZone: "Africa/Johannesburg"
 });
-set("coverLine", "We're making it official on a " + coverWeekday + " in late spring, and we'd like you at the table when we do.");
+set("coverLine", "We're making it official on a " + coverWeekday + " in late spring, and we'd like you at the table after we do.");
 document.title = CONFIG.nameA + " & " + CONFIG.nameB + " — Signing Lunch";
 
 const mapsLink = $("factAddress");
@@ -508,6 +524,7 @@ $("openBtn").addEventListener("click", () => {
     invite.classList.add("is-open");
     drawSprigs();
     setupReveals();
+    initRsvp();
     if (!reduced) blossoms(16);
     /* if the opening animation is ever throttled by the browser, make sure the
        invitation still ends up fully visible rather than stuck part-faded */
@@ -560,40 +577,10 @@ function blossoms(count){
 }
 
 /* ---------- RSVP ---------- */
-let answer = null;
-const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn"), status = $("status");
+const status = $("status");
 
-function choose(which){
-  answer = which;
-  yes.setAttribute("aria-pressed", String(which === "yes"));
-  no.setAttribute("aria-pressed", String(which === "no"));
-  updateSend();
-}
-yes.addEventListener("click", () => choose("yes"));
-no.addEventListener("click", () => choose("no"));
-$("guestName").addEventListener("input", updateSend);
-
-function updateSend(){
-  const name = $("guestName").value.trim();
-  const ready = Boolean(answer && name);
-  send.setAttribute("aria-disabled", String(!ready));
-  if (!ready){
-    status.textContent = "";
-    send.removeAttribute("href");
-    return;
-  }
-  const message = answer === "yes"
-    ? `Hi! It's ${name}. Count me in for the signing lunch on ${CONFIG.dateLabel}.`
-    : `Hi! It's ${name}. I can't make the signing lunch on ${CONFIG.dateLabel}, but I'm celebrating from here.`;
-  send.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(message)}`;
-  send.target = "_blank";
-  send.rel = "noopener";
-  status.textContent = answer === "yes"
-    ? "Lovely. Tap send and your reply opens in WhatsApp."
-    : "Understood, and thank you for telling us. Tap send to let us know.";
-}
-
-/* WhatsApp number is Nande's, here for questions rather than replies. */
+/* Replies are collected in the form embedded above, so nobody leaves the page.
+   The WhatsApp number is Nande's, here for questions rather than replies. */
 const waLink = $("waLink");
 if (waLink) waLink.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" +
   encodeURIComponent("Hi Nande! A question about the signing lunch on " + CONFIG.dateLabel + ".");
@@ -690,6 +677,66 @@ function setupReveals(){
     });
   }, { passive: true });
 })();
+
+/* ---------- the vine grows as you scroll ---------- */
+(function vines(){
+  const left = document.querySelector(".vine");
+  if (!left || reduced) return;
+
+  const right = left.cloneNode(true);
+  right.classList.remove("vine--left");
+  right.classList.add("vine--right");
+  left.after(right);
+
+  const rigs = [...document.querySelectorAll(".vine")].map(svg => {
+    const stem = svg.querySelector(".vine__stem");
+    const len = stem.getTotalLength();
+    stem.style.strokeDasharray = len;
+    stem.style.strokeDashoffset = len;
+    return { stem, len, buds: [...svg.querySelectorAll(".vine__bud")] };
+  });
+
+  let ticking = false;
+  const draw = () => {
+    ticking = false;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    /* before the card is opened there is nothing to scroll, so the vine waits */
+    const p = max > 8 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    rigs.forEach(({ stem, len, buds }) => {
+      stem.style.strokeDashoffset = len * (1 - p);
+      buds.forEach(b => {
+        const open = p >= Number(b.dataset.at);
+        b.style.opacity = open ? "1" : "0";
+        b.style.transform = open ? "scale(1)" : "scale(.2)";
+      });
+    });
+  };
+  const queue = () => { if (!ticking){ ticking = true; requestAnimationFrame(draw); } };
+  addEventListener("scroll", queue, { passive: true });
+  addEventListener("resize", queue, { passive: true });
+  draw();
+})();
+
+/* ---------- the reply form, embedded so nobody leaves the page ---------- */
+function initRsvp(){
+  const frame = $("rsvpFrame");
+  if (!frame || frame.dataset.ready) return;
+  frame.dataset.ready = "1";
+  const src = CONFIG.rsvpForm.replace("/r/", "/embed/") +
+    "?hideTitle=1&transparentBackground=1&dynamicHeight=1";
+  frame.setAttribute("data-tally-src", src);
+  const go = () => {
+    if (window.Tally && typeof window.Tally.loadEmbeds === "function") window.Tally.loadEmbeds();
+    /* if their script never arrives, point the frame straight at the form
+       so replies still reach us rather than failing quietly */
+    if (!frame.src) frame.src = src;
+  };
+  if (window.Tally) return go();
+  const s = document.createElement("script");
+  s.src = "https://tally.so/widgets/embed.js";
+  s.onload = go; s.onerror = go;
+  document.body.appendChild(s);
+}
 </script>
 </body>
 </html>
