@@ -257,6 +257,8 @@
     line-height:1.7; margin:0 0 1.5rem;}
 
   .actions{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;}
+  /* sits under the reply button, on its own line */
+  .actions--cal{margin-top:.2rem;}
   .btn{
     font-family:var(--sans); font-size:.88rem; letter-spacing:.04em;
     padding:.85rem 1.6rem; border-radius:999px; cursor:pointer; border:1px solid var(--pine);
@@ -284,11 +286,14 @@
     padding:.7rem .85rem;
   }
   .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
-  .choices{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin:0 0 1.3rem;}
+  /* the two answers share the row evenly and stay side by side: no wrapping,
+     so a narrow phone never stacks one above the other */
+  .choices{display:flex; gap:.7rem; justify-content:center; margin:0 0 1.3rem;}
   .choice{
+    flex:1 1 0; min-width:0; text-align:center;
     font-family:var(--sans); font-size:.88rem; font-weight:400; color:var(--pine);
     background:transparent; border:1px solid rgba(60,100,68,.35); border-radius:999px;
-    padding:.7rem 1.35rem; cursor:pointer;
+    padding:.7rem .9rem; cursor:pointer;
     transition:background .25s ease, color .25s ease, border-color .25s ease;
   }
   .choice:hover{border-color:var(--moss); background:rgba(127,165,92,.14);}
@@ -531,7 +536,7 @@
         <button class="btn btn--quiet" id="changeReply">Change your reply</button>
       </div>
 
-      <div class="actions">
+      <div class="actions actions--cal">
         <button class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
 
@@ -715,10 +720,19 @@ $("calBtn").addEventListener("click", () => {
 });
 
 /* ---------- days to go ---------- */
+/* Midnight in Johannesburg for a given moment, as a plain day number.
+   Counting between calendar days rather than between instants is what makes
+   the number tick over at midnight instead of at the hour the lunch starts,
+   and makes it read the same for a guest in another timezone. */
+const jhbDay = (d) => {
+  const ymd = d.toLocaleDateString("en-CA", { timeZone: "Africa/Johannesburg" });
+  return Date.UTC(+ymd.slice(0, 4), +ymd.slice(5, 7) - 1, +ymd.slice(8, 10));
+};
+
 function startCountdown(){
   const el = $("countdown");
   if (!el) return;
-  const days = Math.ceil((new Date(CONFIG.startsAt) - new Date()) / 86400000);
+  const days = Math.round((jhbDay(new Date(CONFIG.startsAt)) - jhbDay(new Date())) / 86400000);
   if (days < 0){ el.textContent = ""; return; }
   if (days === 0){ el.innerHTML = "<strong>Today.</strong> See you at the table."; return; }
   if (days === 1){ el.innerHTML = "<strong>Tomorrow.</strong> Very nearly time."; return; }
