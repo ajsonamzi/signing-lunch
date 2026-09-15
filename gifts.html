@@ -8,6 +8,8 @@
 <title>A few things — Nande &amp; Ayanda</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://docs.google.com">
+<link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -174,6 +176,7 @@
   <p class="foot"><a class="back" href="./">Back to the invitation</a></p>
 </main>
 
+<script src="claimed.js"></script>
 <script>
 const CONFIG = {
   whatsapp: "27607415890",
@@ -183,6 +186,13 @@ const CONFIG = {
      everyone. Left empty, claims are sent by WhatsApp instead and
      nothing is shared between guests. */
   claimEndpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
+
+  /* The Claimed tab of the same Sheet, published to the web as CSV. It
+     holds gift names and nothing else — no guest names — and it answers in
+     a fraction of the time the script takes, because Google serves it as a
+     static file. Left empty, the page falls back to the script endpoint
+     and simply feels slower. */
+  claimedCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJLsqgbaJ-p6YSP1NT2x8k80PNz1dyVOERGwjk47gupBo2oqxIBAIQdbS1py_C1HiZItMmsHm27y2j/pub?gid=1198330541&single=true&output=csv",
 
   gifts: [
     { name: "Kenwood stand mixer", note: "The big one — a few of you could go in together." },
@@ -288,7 +298,7 @@ function claim(gift){
     .then(r => r.json())
     .then(d => {
       if (d && d.ok){
-        if (!gift.many) claimed.add(gift.name);
+        if (!gift.many){ claimed.add(gift.name); mine.add(gift.name); Claimed.save([...claimed]); }
         /* Recorded, so the retry id has done its job. Clearing it means a
            second person on the same phone can put their name to one of the
            things that may be given more than once, instead of the script
@@ -296,7 +306,7 @@ function claim(gift){
         gift._rid = null;
         status.textContent = "Thank you — we've put your name against it.";
       } else if (d && d.error === "taken"){
-        claimed.add(gift.name);
+        claimed.add(gift.name); mine.add(gift.name); Claimed.save([...claimed]);
         status.textContent = "Someone just beat you to that one — here is what is left.";
       } else {
         throw new Error("failed");
@@ -314,31 +324,62 @@ function claim(gift){
 /* ---------- what other guests have already spoken for ----------
    If this cannot be read we say so rather than failing quietly: an empty
    answer and a failed one look identical on the page — every gift appears
-   free — and that is how two people end up buying the same blender. */
+   free — and that is how two people end up buying the same blender.
+
+   The last list we managed to read is kept in this browser and drawn
+   immediately, so the page opens with what it knew rather than with
+   everything looking available. The invitation refreshes that list while
+   you are reading it, which is why this page is usually right before it
+   has finished asking. */
 const warn = $("warn");
+const warnText = $("warnText");
+const KNOWN = new Set(CONFIG.gifts.map(g => g.name));
+
+Claimed.configure({ csv: CONFIG.claimedCsv, exec: CONFIG.claimEndpoint });
+
+/* Anything claimed on this page in this session. Held separately so a
+   refresh that has not caught up yet cannot make it look free again. */
+const mine = new Set();
+
+function apply(names){
+  claimed.clear();
+  names.forEach(n => { if (KNOWN.has(n)) claimed.add(n); });
+  mine.forEach(n => claimed.add(n));
+  render();
+}
+
+function ago(ms){
+  const mins = Math.round((Date.now() - ms) / 60000);
+  if (mins < 1)  return "a moment ago";
+  if (mins === 1) return "a minute ago";
+  if (mins < 60) return mins + " minutes ago";
+  const hrs = Math.round(mins / 60);
+  return hrs === 1 ? "an hour ago" : hrs + " hours ago";
+}
 
 function load(){
-  render();
-  if (!CONFIG.claimEndpoint) return;
+  const known = Claimed.cached();
+  if (known) apply(known.names); else render();
+
+  if (!CONFIG.claimedCsv && !CONFIG.claimEndpoint) return;
 
   const retry = $("retry");
   retry.disabled = true;
-  const ctrl = new AbortController();
-  const bail = setTimeout(() => ctrl.abort(), 15000);
 
-  fetch(CONFIG.claimEndpoint, { signal: ctrl.signal })
-    .then(r => {
-      if (!r.ok) throw new Error(r.status);
-      return r.json();          // throws if Google hands back its own HTML
-    })
-    .then(rows => {
-      if (!Array.isArray(rows)) throw new Error("unexpected answer");
-      rows.forEach(r => r && r.gift && claimed.add(r.gift));
+  Claimed.refresh()
+    .then(names => {
+      apply(names);
       warn.hidden = true;
-      render();
     })
-    .catch(() => { warn.hidden = false; })
-    .finally(() => { clearTimeout(bail); retry.disabled = false; });
+    .catch(() => {
+      warnText.textContent = known
+        ? "We couldn't reach the list just now, so this is what it looked like " +
+          ago(known.at) + ". Worth trying again before you buy anything."
+        : "We couldn't check what's already been spoken for, so everything below " +
+          "looks free when it might not be. Worth trying again before you buy anything.";
+      warn.hidden = false;
+    })
+    .then(() => { retry.disabled = false; });
 }
 
 $("retry").addEventListener("click", load);
