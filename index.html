@@ -339,8 +339,13 @@
     font-style:italic; font-size:1.12rem; color:var(--moss); font-weight:300;
   }
 
-  /* deliberately quiet: the gift list is a side door, not part of the invitation */
-  .aside{text-align:center; margin:2.2rem 0 0;}
+  /* deliberately quiet: these are side doors, not part of the invitation */
+  .aside{text-align:center; margin:2.2rem 0 0; line-height:2.2;}
+  .aside__dot{color:rgba(60,100,68,.4); margin:0 .5rem;}
+  @media (max-width:430px){
+    .aside__dot{display:none;}
+    .aside a{display:inline-block;}
+  }
   .aside a{
     font-family:var(--sans); font-size:.78rem; letter-spacing:.08em; font-weight:300;
     color:var(--ink-soft); text-decoration:none;
@@ -547,7 +552,11 @@
 
     <p class="countdown" id="countdown"></p>
     <p class="signoff">With love, from both of us.</p>
-    <p class="aside"><a href="gifts.html">If you'd like to bring something</a></p>
+    <p class="aside">
+      <a href="gallery.html">A few photographs</a>
+      <span class="aside__dot" aria-hidden="true">&middot;</span>
+      <a href="gifts.html">If you'd like to bring something</a>
+    </p>
   </article>
 </main>
 

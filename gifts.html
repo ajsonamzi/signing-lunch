@@ -88,8 +88,14 @@
     transition:background .25s ease, color .25s ease, border-color .25s ease;
   }
   .claim:hover{border-color:var(--moss); background:rgba(127,165,92,.14);}
-  .gift.is-taken{opacity:.55;}
-  .gift.is-taken .gift__name{text-decoration:line-through; text-decoration-color:rgba(60,100,68,.4);}
+  /* The row fades, but the line itself must not: a .4 alpha rule inside a .55
+     opacity row came out at roughly .22 and read as nothing being crossed off. */
+  .gift.is-taken{opacity:.72;}
+  .gift.is-taken .gift__name{
+    text-decoration:line-through;
+    text-decoration-color:var(--moss);
+    text-decoration-thickness:1.5px;
+  }
   .taken{
     font-family:var(--sans); font-size:.76rem; letter-spacing:.1em; color:var(--moss);
     border:1px solid transparent; padding:.55rem .4rem; white-space:nowrap;
