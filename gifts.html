@@ -196,9 +196,9 @@ const CONFIG = {
     { name: "Baking tins" },
     { name: "Bakeware" },
     { name: "Dinnerware set" },
-    { name: "Airtight glass storage" },
-    { name: "Bedding", note: "Double bed — duvet set." },
-    { name: "Cotton towel and sheet set" },
+    { name: "Airtight glass storage", many: true },
+    { name: "Bedding", note: "Double bed — duvet set.", many: true },
+    { name: "Cotton towel and sheet set", many: true },
     { name: "First aid kit" },
     { name: "Plants", many: true },
     { name: "Vouchers", many: true },
@@ -289,6 +289,11 @@ function claim(gift){
     .then(d => {
       if (d && d.ok){
         if (!gift.many) claimed.add(gift.name);
+        /* Recorded, so the retry id has done its job. Clearing it means a
+           second person on the same phone can put their name to one of the
+           things that may be given more than once, instead of the script
+           mistaking them for a double tap and quietly dropping it. */
+        gift._rid = null;
         status.textContent = "Thank you — we've put your name against it.";
       } else if (d && d.error === "taken"){
         claimed.add(gift.name);
