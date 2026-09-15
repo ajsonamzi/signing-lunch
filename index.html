@@ -27,6 +27,8 @@
 <title>Nande &amp; Ayanda — Signing Lunch</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://docs.google.com">
+<link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -562,6 +564,7 @@
 
 <div class="blossoms" id="blossoms" aria-hidden="true"></div>
 
+<script src="claimed.js"></script>
 <script>
 /* ================================================================
    EVERYTHING YOU'LL WANT TO CHANGE LIVES HERE.
@@ -586,6 +589,10 @@ const CONFIG = {
 
   // Replies and gift claims both land in one Google Sheet, via this script.
   endpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
+
+  // The Claimed tab of the same Sheet, published as CSV. Gift names only.
+  // Keep this the same as claimedCsv in gifts.html.
+  claimedCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJLsqgbaJ-p6YSP1NT2x8k80PNz1dyVOERGwjk47gupBo2oqxIBAIQdbS1py_C1HiZItMmsHm27y2j/pub?gid=1198330541&single=true&output=csv",
 
   // WhatsApp number, here for questions rather than replies.
   whatsapp: "27607415890",
@@ -781,6 +788,17 @@ function setupReveals(){
     entries.forEach(e => {
       if (!e.isIntersecting) return;
       const el = e.target;
+      /* If you can see this one you have already gone past everything above
+         it, so bring those in too. A jump straight down the page — a restored
+         scroll position, an anchor, the End key — never reports the parts it
+         skipped, and they would otherwise sit invisible. */
+      const here = items.indexOf(el);
+      for (let i = 0; i < here; i++){
+        if (!items[i].classList.contains("is-in")){
+          items[i].classList.add("is-in");
+          io.unobserve(items[i]);
+        }
+      }
       setTimeout(() => el.classList.add("is-in"), Number(el.dataset.d || 0));
       if (el.classList.contains("countdown") && !counted){ counted = true; startCountdown(); }
       io.unobserve(el);
@@ -957,6 +975,54 @@ send.addEventListener("click", async () => {
     clearTimeout(bail);
   }
 });
+
+/* ---------- have the gift list ready before anyone asks for it ----------
+   Reading what other guests have spoken for is the slow part of this site,
+   and it happens on a page most people reach a minute or two after opening
+   the invitation. So we read it here instead, quietly, while they are still
+   on this page — on arrival, once they start reading, and again as they
+   reach for the link. By the time the gift list opens, the answer is
+   already in this browser and it draws at once.
+
+   Nothing on this page waits for it and nothing shows if it fails. It is a
+   head start, not a dependency. */
+(function warmGiftList(){
+  if (!CONFIG.claimedCsv && !CONFIG.endpoint) return;
+  Claimed.configure({ csv: CONFIG.claimedCsv, exec: CONFIG.endpoint });
+
+  let last = 0, busy = false;
+  const FRESH = 30000;   // reading as they scroll: at most this often
+  const FLOOR =  5000;   // reaching for the link: still not on every twitch
+
+  function warm(now_please){
+    const now = Date.now();
+    if (busy) return;
+    if (now - last < (now_please ? FLOOR : FRESH)) return;
+    if (!now_please){
+      const known = Claimed.cached();
+      if (known && now - known.at < FRESH) { last = now; return; }
+    }
+    busy = true; last = now;
+    Claimed.refresh().catch(() => {}).then(() => { busy = false; });
+  }
+  const idle = () => warm(false);   // the listeners pass an Event, which is not an answer
+
+  // On arrival, but only once the invitation itself has settled.
+  if ("requestIdleCallback" in window) requestIdleCallback(idle, { timeout: 4000 });
+  else setTimeout(idle, 2000);
+
+  // As they read.
+  addEventListener("scroll", idle, { passive: true });
+  addEventListener("pointerdown", idle, { passive: true });
+
+  // And as they reach for the link, so the last read is the freshest one.
+  const link = document.querySelector('a[href="gifts.html"]');
+  if (link){
+    ["pointerenter", "touchstart", "focus"].forEach(function(evt){
+      link.addEventListener(evt, function(){ warm(true); }, { passive: true });
+    });
+  }
+})();
 </script>
 </body>
 </html>
