@@ -104,6 +104,22 @@
   .status{font-size:1rem; color:var(--moss); margin:1.4rem 0 0; min-height:1.4em;
     font-style:italic; text-align:center;}
 
+  /* Warm rather than green, so it reads as a caveat instead of decoration. */
+  .warn{
+    font-family:var(--sans); font-size:.86rem; font-weight:300; line-height:1.65;
+    color:#6B5426; background:rgba(190,150,80,.13);
+    border:1px solid rgba(150,115,50,.32); border-radius:3px;
+    padding:.9rem 1rem; margin:0 0 1.4rem; text-align:center;
+  }
+  .warn__retry{
+    font-family:var(--sans); font-size:.8rem; color:#6B5426;
+    background:transparent; border:1px solid rgba(150,115,50,.45);
+    border-radius:999px; padding:.4rem 1rem; margin-left:.5rem; cursor:pointer;
+    white-space:nowrap; transition:background .2s ease;
+  }
+  .warn__retry:hover{background:rgba(190,150,80,.2);}
+  .warn__retry[disabled]{opacity:.5; pointer-events:none;}
+
   .foot{text-align:center; margin:2.4rem 0 0;}
   .back{font-family:var(--sans); font-size:.84rem; color:var(--moss); text-decoration:none;
     border-bottom:1px solid rgba(60,100,68,.4); padding-bottom:2px;}
@@ -144,6 +160,12 @@
     <span>Name and surname</span>
     <input type="text" id="guestName" placeholder="Who's asking?" autocomplete="name">
   </label>
+
+  <p class="warn" id="warn" hidden>
+    <span id="warnText">We couldn't check what's already been spoken for, so everything below
+    looks free when it might not be. Worth trying again before you buy anything.</span>
+    <button type="button" class="warn__retry" id="retry">Try again</button>
+  </p>
 
   <ul class="gifts" id="gifts"></ul>
 
@@ -284,18 +306,37 @@ function claim(gift){
     });
 }
 
-/* what other guests have already spoken for */
+/* ---------- what other guests have already spoken for ----------
+   If this cannot be read we say so rather than failing quietly: an empty
+   answer and a failed one look identical on the page — every gift appears
+   free — and that is how two people end up buying the same blender. */
+const warn = $("warn");
+
 function load(){
   render();
   if (!CONFIG.claimEndpoint) return;
-  fetch(CONFIG.claimEndpoint)
-    .then(r => r.json())
+
+  const retry = $("retry");
+  retry.disabled = true;
+  const ctrl = new AbortController();
+  const bail = setTimeout(() => ctrl.abort(), 15000);
+
+  fetch(CONFIG.claimEndpoint, { signal: ctrl.signal })
+    .then(r => {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();          // throws if Google hands back its own HTML
+    })
     .then(rows => {
-      (rows || []).forEach(r => r && r.gift && claimed.add(r.gift));
+      if (!Array.isArray(rows)) throw new Error("unexpected answer");
+      rows.forEach(r => r && r.gift && claimed.add(r.gift));
+      warn.hidden = true;
       render();
     })
-    .catch(() => {});
+    .catch(() => { warn.hidden = false; })
+    .finally(() => { clearTimeout(bail); retry.disabled = false; });
 }
+
+$("retry").addEventListener("click", load);
 load();
 </script>
 </body>
