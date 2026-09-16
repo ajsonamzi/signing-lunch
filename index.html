@@ -794,9 +794,13 @@ function setupReveals(){
          skipped, and they would otherwise sit invisible. */
       const here = items.indexOf(el);
       for (let i = 0; i < here; i++){
-        if (!items[i].classList.contains("is-in")){
-          items[i].classList.add("is-in");
-          io.unobserve(items[i]);
+        const above = items[i];
+        if (!above.classList.contains("is-in")){
+          above.classList.add("is-in");
+          /* the countdown counts from the moment it is shown, and being shown
+             this way is still being shown — without this it arrives blank */
+          if (above.classList.contains("countdown") && !counted){ counted = true; startCountdown(); }
+          io.unobserve(above);
         }
       }
       setTimeout(() => el.classList.add("is-in"), Number(el.dataset.d || 0));
