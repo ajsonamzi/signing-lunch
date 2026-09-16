@@ -17,11 +17,21 @@
    script, which remains the one place that decides what is taken. The
    worst a stale list can do is let someone tap a gift that has just gone,
    and be told so.
+
+   One kind of staleness is worth more than that, though. Google keeps
+   serving the published CSV from its own cache for about five minutes, so
+   straight after a guest claims something the sheet still says it is free.
+   Reload in that window and their own gift used to look available again —
+   and tapping it told them someone else had beaten them to it. So a claim
+   made in this browser is remembered here for a while, and counted as taken
+   whatever the CSV says, until the CSV has had time to catch up.
    ================================================================ */
 (function (global) {
   "use strict";
 
   var KEY      = "signing-lunch:claimed:v1";
+  var MINE     = "signing-lunch:mine:v1";
+  var MINE_TTL = 15 * 60 * 1000;   /* three times Google's CSV cache */
   var MAX_ROWS = 400;   /* ceilings, so a wrong URL or a mangled answer */
   var MAX_LEN  = 120;   /* cannot fill the page or the cache with junk  */
 
@@ -41,8 +51,33 @@
       if (!raw) return null;
       var c = JSON.parse(raw);
       if (!c || !Array.isArray(c.names) || typeof c.at !== "number") return null;
-      return { names: clean(c.names), at: c.at };
+      return { names: withMine(c.names), at: c.at };
     } catch (e) { return null; }
+  }
+
+  /* ---------- what this browser has claimed, recently ---------- */
+  function readMine() {
+    try {
+      var m = JSON.parse(global.localStorage.getItem(MINE) || "{}");
+      return (m && typeof m === "object" && !Array.isArray(m)) ? m : {};
+    } catch (e) { return {}; }
+  }
+
+  function mine() {
+    var m = readMine(), now = Date.now(), out = [];
+    for (var k in m) if (Object.prototype.hasOwnProperty.call(m, k) && typeof m[k] === "number" && now - m[k] < MINE_TTL) out.push(k);
+    return clean(out);
+  }
+
+  function remember(gift) {
+    var m = readMine(), now = Date.now(), keep = {};
+    for (var k in m) if (Object.prototype.hasOwnProperty.call(m, k) && typeof m[k] === "number" && now - m[k] < MINE_TTL) keep[k] = m[k];
+    keep[String(gift).slice(0, MAX_LEN)] = now;
+    try { global.localStorage.setItem(MINE, JSON.stringify(keep)); } catch (e) {}
+  }
+
+  function withMine(names) {
+    return clean(names.concat(mine()));
   }
 
   function save(names) {
@@ -84,7 +119,10 @@
   function withTimeout(url, ms, asJson) {
     var ctrl = typeof AbortController === "function" ? new AbortController() : null;
     var bail = global.setTimeout(function () { if (ctrl) ctrl.abort(); }, ms);
-    var opts = ctrl ? { signal: ctrl.signal } : {};
+    /* no-store: the browser's own cache would otherwise add its five minutes
+       to Google's, for the same guest coming back to the page */
+    var opts = { cache: "no-store" };
+    if (ctrl) opts.signal = ctrl.signal;
     return global.fetch(url, opts)
       .then(function (r) {
         if (!r.ok) throw new Error("http " + r.status);
@@ -116,7 +154,7 @@
   function refresh() {
     return fromCsv()
       .catch(function () { return fromScript(); })
-      .then(function (names) { save(names); return names; });
+      .then(function (names) { save(names); return withMine(names); });
   }
 
   global.Claimed = {
@@ -124,6 +162,8 @@
     cached: cached,
     save: save,
     refresh: refresh,
+    remember: remember,
+    mine: mine,
     parseCsv: parseCsv,
     KEY: KEY
   };
