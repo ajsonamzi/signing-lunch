@@ -28,6 +28,10 @@
 
     rsvpBy: "Thursday, 1 October 2026",
 
+    // The moment replies close: the end of the rsvpBy day, South African time.
+    // After it the invitation shows a short note instead of the reply form.
+    rsvpClosesAt: "2026-10-02T00:00:00+02:00",
+
     // Replies and gift claims both land in one Google Sheet, via this script.
     endpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
 
@@ -77,6 +81,13 @@
 
   EVENT.daysToGo = function (now) {
     return Math.round((jhbDay(new Date(EVENT.startsAt)) - jhbDay(now || new Date())) / 86400000);
+  };
+
+  /* Replies are closed once rsvpClosesAt has passed: one moment for every
+     guest, wherever they happen to be. */
+  EVENT.repliesClosed = function (now) {
+    var at = new Date(EVENT.rsvpClosesAt || "").getTime();
+    return isFinite(at) && (now || new Date()).getTime() >= at;
   };
 
   /* Writes the countdown into el. The number counts itself up, so call this
