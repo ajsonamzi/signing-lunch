@@ -275,6 +275,14 @@
     color:var(--moss); font-size:1rem;
   }
 
+  /* after the reply date: the same quiet weight as "your reply is already in" */
+  .closed{max-width:26rem; margin:.2rem auto 1.4rem; padding:.6rem 1rem 0;}
+  .closed p{font-size:1.06rem; color:var(--pine); font-weight:300; margin:0; line-height:1.7;}
+  .closed a{color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
+    transition:color .2s ease, border-color .2s ease;}
+  .closed a:hover, .closed a:focus-visible{color:var(--pine); border-color:var(--pine);}
+  .closed:focus{outline:none;}
+
   .rsvp__ask{font-size:1rem; color:var(--ink-soft); font-weight:300; margin:1.3rem 0 0;}
   .rsvp__ask a{color:var(--moss); text-decoration:none; border-bottom:1px solid rgba(60,100,68,.4);
     transition:color .2s ease, border-color .2s ease;}
@@ -412,6 +420,10 @@
         <button type="button" class="btn btn--quiet" id="changeReply">Change your reply</button>
       </div>
 
+      <div class="closed" id="closed" tabindex="-1" hidden>
+        <p>Replies closed on <span id="closedOn">Thursday, 1 October</span>, and the chairs are counted. If something has changed, <a id="closedWa" href="https://wa.me/27607415890" target="_blank" rel="noopener">WhatsApp Nande</a> and we'll do what we can.</p>
+      </div>
+
       <div class="actions actions--cal">
         <button type="button" class="btn btn--quiet" id="calBtn">Add to your calendar</button>
       </div>
@@ -431,7 +443,7 @@
   </article>
 </main>
 
-<script src="event.js?v=017b9f91"></script>
+<script src="event.js?v=7e2133e5"></script>
 <script src="claimed.js?v=c9040025"></script>
 <script>
 /* ================================================================
@@ -541,7 +553,23 @@ const yes = $("choiceYes"), no = $("choiceNo"), send = $("sendBtn"), nameInput =
 /* a name typed on the gift list is offered back here */
 const offerName = () => { if (!nameInput.value && CONFIG) nameInput.value = CONFIG.guest.get(); };
 
+/* ---------- when replies close ----------
+   After rsvpClosesAt in event.js, the form and the chance to change a reply
+   give way to a short note pointing to WhatsApp. It is checked when the card
+   opens and again at the moment someone taps send, so a page left open past
+   midnight cannot slip a late reply in. */
+const repliesClosed = () => !!(CONFIG && CONFIG.repliesClosed && CONFIG.repliesClosed());
+function showClosed(){
+  $("rsvpForm").hidden = true;
+  $("replied").hidden = true;
+  document.querySelectorAll(".rsvp__by, .rsvp__note").forEach(el => { el.hidden = true; });
+  set("closedOn", CONFIG.rsvpBy.replace(/\s*\d{4}\s*$/, ""));
+  $("closedWa").href = CONFIG.whatsappUrl("Hi Nande! A question about the signing lunch on " + CONFIG.dateLabel + ".");
+  $("closed").hidden = false;
+}
+
 function initRsvp(){
+  if (repliesClosed()){ showClosed(); return; }
   if (hasReplied()){
     $("rsvpForm").hidden = true;
     $("replied").hidden = false;
@@ -573,6 +601,7 @@ nameInput.addEventListener("keydown", (e) => {
 });
 
 $("changeReply").addEventListener("click", () => {
+  if (repliesClosed()){ showClosed(); return; }
   try { localStorage.removeItem(RSVP_KEY); } catch (e) {}
   $("replied").hidden = true;
   $("rsvpForm").hidden = false;
@@ -616,6 +645,7 @@ send.addEventListener("click", async () => {
   const name = nameInput.value.trim();
   const said = answer;
   if (!name || !said || sending || !CONFIG) return;
+  if (repliesClosed()){ status.textContent = ""; showClosed(); $("closed").focus({ preventScroll: true }); return; }
   const reply = name + "\n" + said;
   if (!rid || ridFor !== reply){ rid = newRid(); ridFor = reply; }
   lock(true);
