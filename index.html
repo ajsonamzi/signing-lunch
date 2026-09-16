@@ -338,7 +338,8 @@
 </style>
 <!-- without scripts the card cannot open, so show the invitation itself -->
 <noscript><style>.open-btn, .rsvp__form, .actions--cal{display:none;} .invite{display:block;}</style></noscript>
-<script src="garden.js"></script>
+<!-- Each ?v= is the version of that script. Whenever a script changes, change its ?v= on every page that loads it, so no phone pairs this page with an old copy it kept. -->
+<script src="garden.js?v=49376340"></script>
 </head>
 <body data-garden="hold">
 
@@ -430,8 +431,8 @@
   </article>
 </main>
 
-<script src="event.js"></script>
-<script src="claimed.js"></script>
+<script src="event.js?v=017b9f91"></script>
+<script src="claimed.js?v=c9040025"></script>
 <script>
 /* ================================================================
    The names, the date, the place and where replies go all live in
