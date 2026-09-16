@@ -344,17 +344,24 @@
   /* deliberately quiet: these are side doors, not part of the invitation */
   .aside{text-align:center; margin:2.2rem 0 0; line-height:2.2;}
   .aside__dot{color:rgba(60,100,68,.4); margin:0 .5rem;}
-  @media (max-width:430px){
-    .aside__dot{display:none;}
-    .aside a{display:inline-block;}
-  }
   .aside a{
     font-family:var(--sans); font-size:.78rem; letter-spacing:.08em; font-weight:300;
     color:var(--ink-soft); text-decoration:none;
     border-bottom:1px solid rgba(60,100,68,.28); padding-bottom:2px;
     transition:color .2s ease, border-color .2s ease;
+    white-space:nowrap;
   }
   .aside a:hover, .aside a:focus-visible{color:var(--moss); border-color:var(--moss);}
+  /* On a phone the two links sat on one line and broke the second in half.
+     Here they stack, each whole, with the full width to themselves; and the
+     card keeps its bottom corner clear, so the sprig there never draws over
+     them. The padding is a share of the card's width because the sprig is. */
+  @media (max-width:560px){
+    .aside{display:flex; flex-direction:column; align-items:center; gap:.85rem; line-height:1.6;}
+    .aside__dot{display:none;}
+    .aside a{white-space:normal; max-width:100%;}
+    .invite{padding-bottom:calc(41% - 2px);}
+  }
 
   :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
 
