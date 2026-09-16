@@ -42,16 +42,19 @@
       0 30px 70px -30px rgba(5,20,10,.75), 0 4px 14px rgba(5,20,10,.35);
     padding:clamp(34px,7vw,64px) clamp(22px,6vw,58px) clamp(34px,6vw,54px);
     overflow:hidden;
+    /* clip rather than hide where the browser can: it trims the sprigs just
+       the same, but lets the reply message below stick to the screen */
+    overflow:clip;
     animation:arrive .9s cubic-bezier(.22,.9,.28,1) both;
   }
   .card::before{content:""; position:absolute; inset:10px;
     border:1px solid rgba(60,100,68,.22); pointer-events:none;}
   @keyframes arrive{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
 
-  .sprig{position:absolute; top:-8px; left:-12px; width:min(170px,34%); pointer-events:none;
-    animation:sway 9s ease-in-out 1.8s infinite;}
-  @keyframes sway{0%,100%{transform:rotate(0deg) translate3d(0,0,0);}
-    50%{transform:rotate(1.2deg) translate3d(0,-5px,0);}}
+  /* the garden, the vines, the sprigs and the blossoms come from garden.js;
+     the sprigs are sized down a little for a card with a heading near its top */
+  .card{--sprig-tl:min(170px,34%); --sprig-br:min(190px,38%); --sprig-tl-phone:34%; --sprig-br-phone:38%;}
+  @media (max-width:520px){ .card{padding-left:20px; padding-right:20px;} }
 
   header{text-align:center; position:relative;}
   .eyebrow{font-family:var(--sans); font-weight:300; font-size:.76rem;
@@ -98,13 +101,23 @@
     text-decoration-color:var(--moss);
     text-decoration-thickness:1.5px;
   }
+  .claim[aria-disabled="true"]{opacity:.55; cursor:progress;}
   .taken{
     font-family:var(--sans); font-size:.76rem; letter-spacing:.1em; color:var(--moss);
     border:1px solid transparent; padding:.55rem .4rem; white-space:nowrap;
   }
+  .taken:focus{outline:none;}
 
+  /* sits at the foot of the list, and rides the bottom of the screen while
+     that spot is out of view, so the answer to a tap is always in sight */
   .status{font-size:1rem; color:var(--moss); margin:1.4rem 0 0; min-height:1.4em;
-    font-style:italic; text-align:center;}
+    font-style:italic; text-align:center;
+    position:sticky; bottom:12px; z-index:2; border-radius:999px;}
+  .status:not(:empty){
+    background:var(--paper); padding:.55rem 1.1rem;
+    box-shadow:0 0 0 1px rgba(60,100,68,.18), 0 8px 24px -8px rgba(5,20,10,.35);
+  }
+  .status a{color:var(--moss);}
 
   /* Warm rather than green, so it reads as a caveat instead of decoration. */
   .warn{
@@ -132,33 +145,21 @@
     *,*::before,*::after{animation:none !important; transition:none !important;}
   }
 </style>
+<script src="garden.js"></script>
 </head>
 <body>
 
 <main class="card">
-  <svg class="sprig" viewBox="0 0 260 220" aria-hidden="true">
-    <g fill="none" stroke="#3C6444" stroke-width="1.3" stroke-linecap="round" opacity=".75">
-      <path d="M8 6 C 60 40, 90 70, 120 120"/><path d="M60 40 C 78 32, 96 34, 112 46"/>
-      <path d="M90 70 C 104 92, 108 112, 104 134"/><path d="M120 120 C 148 132, 172 130, 196 116"/>
-      <path d="M30 20 C 34 44, 30 62, 18 78"/>
-    </g>
-    <g fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".6">
-      <circle cx="112" cy="46" r="6"/><circle cx="124" cy="38" r="4"/><circle cx="104" cy="34" r="3.4"/>
-      <circle cx="104" cy="134" r="6.4"/><circle cx="96" cy="146" r="4"/><circle cx="112" cy="146" r="3.4"/>
-      <circle cx="196" cy="116" r="7"/><circle cx="208" cy="106" r="4.4"/><circle cx="204" cy="126" r="3.6"/>
-      <circle cx="18" cy="78" r="6"/><circle cx="10" cy="90" r="3.6"/><circle cx="26" cy="90" r="3.2"/>
-    </g>
-  </svg>
 
-  <header>
+  <header data-reveal>
     <p class="eyebrow">if you'd like to</p>
     <h1>A few things<br>we'd love</h1>
     <p class="intro">Please don't feel any obligation — you at the table is the whole point. But a few people have asked, so here is the honest list. Put your name to anything and we'll know it's spoken for.</p>
   </header>
 
-  <hr class="rule">
+  <hr class="rule" data-reveal>
 
-  <label class="field">
+  <label class="field" data-reveal>
     <span>Name and surname</span>
     <input type="text" id="guestName" placeholder="Who's asking?" autocomplete="name">
   </label>
@@ -171,125 +172,182 @@
 
   <ul class="gifts" id="gifts"></ul>
 
-  <p class="status" id="status"></p>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
 
-  <p class="foot"><a class="back" href="./">Back to the invitation</a></p>
+  <p class="foot" data-reveal><a class="back" href="./">Back to the invitation</a></p>
 </main>
 
+<script src="event.js"></script>
 <script src="claimed.js"></script>
 <script>
-const CONFIG = {
-  whatsapp: "27607415890",
+/* ================================================================
+   The gift list. Where claims go and the WhatsApp number come from
+   event.js, shared with every page.
 
-  /* Paste the Google Apps Script web-app URL here to turn on shared
-     tracking: the page will then show what is already spoken for to
-     everyone. Left empty, claims are sent by WhatsApp instead and
-     nothing is shared between guests. */
-  claimEndpoint: "https://script.google.com/macros/s/AKfycbyqA6ntOEJCfEBOg4Fm3seZvpJfefh2aakY4POFkBT6B9Z3ZM26iVfQprwYlv1iv8k/exec",
+   many: true   more than one guest can give it
+   ask: true    opens WhatsApp for details instead of claiming it
+   ================================================================ */
+const GIFTS = [
+  { name: "Kenwood stand mixer", note: "The big one — a few of you could go in together." },
+  { name: "Nespresso machine" },
+  { name: "Cast iron pots" },
+  { name: "Knife set" },
+  { name: "Blender" },
+  { name: "Ice cream churner" },
+  { name: "Sandwich maker" },
+  { name: "Pestle and mortar" },
+  { name: "Baking tins" },
+  { name: "Bakeware" },
+  { name: "Dinnerware set" },
+  { name: "Airtight glass storage", many: true },
+  { name: "Bedding", note: "Double bed — duvet set.", many: true },
+  { name: "Cotton towel and sheet set", many: true },
+  { name: "First aid kit" },
+  { name: "Plants", many: true },
+  { name: "Vouchers", many: true },
+  { name: "Financial contribution", note: "Ask us and we'll send the details.", many: true, ask: true }
+];
 
-  /* The Claimed tab of the same Sheet, published to the web as CSV. It
-     holds gift names and nothing else — no guest names — and it answers in
-     a fraction of the time the script takes, because Google serves it as a
-     static file. Left empty, the page falls back to the script endpoint
-     and simply feels slower. */
-  claimedCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJLsqgbaJ-p6YSP1NT2x8k80PNz1dyVOERGwjk47gupBo2oqxIBAIQdbS1py_C1HiZItMmsHm27y2j/pub?gid=1198330541&single=true&output=csv",
-
-  gifts: [
-    { name: "Kenwood stand mixer", note: "The big one — a few of you could go in together." },
-    { name: "Nespresso machine" },
-    { name: "Cast iron pots" },
-    { name: "Knife set" },
-    { name: "Blender" },
-    { name: "Ice cream churner" },
-    { name: "Sandwich maker" },
-    { name: "Pestle and mortar" },
-    { name: "Baking tins" },
-    { name: "Bakeware" },
-    { name: "Dinnerware set" },
-    { name: "Airtight glass storage", many: true },
-    { name: "Bedding", note: "Double bed — duvet set.", many: true },
-    { name: "Cotton towel and sheet set", many: true },
-    { name: "First aid kit" },
-    { name: "Plants", many: true },
-    { name: "Vouchers", many: true },
-    { name: "Financial contribution", note: "Ask us and we'll send the details.", many: true, ask: true }
-  ]
-};
+const E = window.EVENT || {};
+const garden = window.Garden || { reveal(){} };
+/* claimed.js makes the list faster and shared; the list itself must not
+   depend on it, or a script that failed to load would leave this page blank */
+const claims = window.Claimed || null;
 
 const $ = (id) => document.getElementById(id);
 const status = $("status");
 const list = $("gifts");
+const nameInput = $("guestName");
 const claimed = new Set();
+const pending = new Set();     /* claims on their way, so a second tap cannot send them twice */
+const KNOWN = new Set(GIFTS.map(g => g.name));
+
+/* a name typed on the invitation is offered back here */
+if (!nameInput.value && E.guest) nameInput.value = E.guest.get();
+
+/* A message that someone needs to see wherever they are on the list: it
+   sits in its place at the foot of the card, and rides along the bottom of
+   the screen while that place is scrolled out of view. A thank-you clears
+   itself; anything that needs acting on stays until the next tap. */
+let fade = null;
+function say(text, opts){
+  clearTimeout(fade);
+  if (opts && opts.html) status.innerHTML = text; else status.textContent = text;
+  if (opts && opts.passing) fade = setTimeout(() => { status.textContent = ""; }, 6000);
+}
+
+/* Each row is built once and then only changed where its state changes.
+   The list used to be torn down and rebuilt on every update, which dropped
+   whoever was on a button back to the top of the page, and cut the rows'
+   arrival short whenever the sheet answered quickly. */
+const rows = new Map();
+let firstDraw = true;
+
+function stateOf(g){
+  if (!g.many && claimed.has(g.name)) return "taken";
+  return pending.has(g.name) ? "pending" : "free";
+}
+
+function buildRow(g){
+  const li = document.createElement("li");
+  li.className = "gift";
+
+  const text = document.createElement("div");
+  text.className = "gift__text";
+  const name = document.createElement("span");
+  name.className = "gift__name";
+  name.textContent = g.name;
+  text.appendChild(name);
+  if (g.note){
+    const note = document.createElement("span");
+    note.className = "gift__note";
+    note.textContent = g.note;
+    text.appendChild(note);
+  }
+
+  const act = document.createElement("div");
+  act.className = "gift__act";
+  li.append(text, act);
+  list.appendChild(li);
+  return { li, act, state: null };
+}
 
 const render = () => {
-  list.innerHTML = "";
-  CONFIG.gifts.forEach((g, i) => {
-    const taken = !g.many && claimed.has(g.name);
-    const li = document.createElement("li");
-    li.className = "gift" + (taken ? " is-taken" : "");
+  GIFTS.forEach((g) => {
+    const row = rows.get(g.name) || rows.set(g.name, buildRow(g)).get(g.name);
+    const state = stateOf(g);
+    if (row.state === state) return;
+    const hadFocus = row.li.contains(document.activeElement);
+    row.state = state;
+    row.li.classList.toggle("is-taken", state === "taken");
 
-    const text = document.createElement("div");
-    text.className = "gift__text";
-    const name = document.createElement("span");
-    name.className = "gift__name";
-    name.textContent = g.name;
-    text.appendChild(name);
-    if (g.note){
-      const note = document.createElement("span");
-      note.className = "gift__note";
-      note.textContent = g.note;
-      text.appendChild(note);
-    }
-
-    const act = document.createElement("div");
-    act.className = "gift__act";
-    if (taken){
+    if (state === "taken"){
       const tag = document.createElement("span");
       tag.className = "taken";
+      tag.tabIndex = -1;
       tag.textContent = "Spoken for";
-      act.appendChild(tag);
-    } else {
-      const btn = document.createElement("button");
+      row.act.textContent = "";
+      row.act.appendChild(tag);
+      if (hadFocus) tag.focus({ preventScroll: true });
+      return;
+    }
+    let btn = row.act.querySelector(".claim");
+    if (!btn){
+      btn = document.createElement("button");
+      btn.type = "button";
       btn.className = "claim";
       btn.textContent = g.ask ? "Ask for details" : "I'll bring this";
-      btn.addEventListener("click", () => claim(g, i));
-      act.appendChild(btn);
+      btn.addEventListener("click", () => claim(g));
+      row.act.textContent = "";
+      row.act.appendChild(btn);
+      if (hadFocus) btn.focus({ preventScroll: true });
     }
-
-    li.append(text, act);
-    list.appendChild(li);
+    /* aria-disabled rather than disabled, so a keyboard keeps its place on it */
+    if (state === "pending"){ btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
+    else { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); }
   });
+
+  /* only the first drawing arrives row by row */
+  if (firstDraw){
+    firstDraw = false;
+    garden.reveal([...rows.values()].map(r => r.li), { stagger: 45 });
+  }
 };
 
 function claim(gift){
-  const name = $("guestName").value.trim();
+  const name = nameInput.value.trim();
   if (!name){
-    status.textContent = "Pop your name in first, so we know who to thank.";
-    $("guestName").focus();
+    say("Pop your name in first, so we know who to thank.");
+    nameInput.focus();
     return;
   }
+  if (pending.has(gift.name)) return;
 
   const message = gift.ask
     ? `Hi! It's ${name}. Could you send me the details for a contribution towards the signing lunch?`
     : `Hi! It's ${name}. I'd love to bring the ${gift.name.toLowerCase()} for the signing lunch.`;
+  const whatsapp = E.whatsappUrl ? E.whatsappUrl(message) : "";
 
-  if (!CONFIG.claimEndpoint || gift.ask){
-    open("https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(message), "_blank", "noopener");
-    status.textContent = gift.ask
+  if (!E.endpoint || gift.ask){
+    if (whatsapp) open(whatsapp, "_blank", "noopener");
+    say(gift.ask
       ? "Opening WhatsApp so we can send the details."
-      : "Opening WhatsApp — send the message and it's yours.";
+      : "Opening WhatsApp — send the message and it's yours.", { passing: true });
     return;
   }
 
   /* We wait for the answer rather than firing and hoping: it lets us tell
      someone honestly when another guest claimed the same thing first. */
-  status.textContent = "Just a moment\u2026";
+  say("Just a moment…");
+  E.guest && E.guest.set(name);
+  pending.add(gift.name);
+  render();
   /* Same id if they tap again after a slow response, so one gift cannot be
      recorded twice against the same person. */
   if (!gift._rid) gift._rid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   const ctrl = new AbortController();
-  setTimeout(() => ctrl.abort(), 25000);
-  fetch(CONFIG.claimEndpoint, {
+  const bail = setTimeout(() => ctrl.abort(), 25000);
+  fetch(E.endpoint, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ name: name, gift: gift.name, many: !!gift.many, rid: gift._rid }),
@@ -298,27 +356,41 @@ function claim(gift){
     .then(r => r.json())
     .then(d => {
       if (d && d.ok){
-        if (!gift.many){ claimed.add(gift.name); mine.add(gift.name); Claimed.save([...claimed]); }
+        if (!gift.many) mark(gift.name);
         /* Recorded, so the retry id has done its job. Clearing it means a
            second person on the same phone can put their name to one of the
            things that may be given more than once, instead of the script
            mistaking them for a double tap and quietly dropping it. */
         gift._rid = null;
-        status.textContent = "Thank you — we've put your name against it.";
+        say("Thank you — we've put your name against it.", { passing: true });
       } else if (d && d.error === "taken"){
-        claimed.add(gift.name); mine.add(gift.name); Claimed.save([...claimed]);
-        status.textContent = "Someone just beat you to that one — here is what is left.";
+        mark(gift.name);
+        say("Someone just beat you to that one — here is what is left.", { passing: true });
       } else {
         throw new Error("failed");
       }
-      render();
     })
     .catch(() => {
-      status.innerHTML = "That didn't save — please try again, or " +
-        '<a href="https://wa.me/' + CONFIG.whatsapp + '?text=' +
-        encodeURIComponent(message) +
-        '" target="_blank" rel="noopener">tell us on WhatsApp</a>.';
+      say("That didn't save — please try again, or " +
+        (whatsapp ? '<a href="' + whatsapp + '" target="_blank" rel="noopener">tell us on WhatsApp</a>.' : "tell us on WhatsApp."),
+        { html: true });
+    })
+    .then(() => {
+      clearTimeout(bail);
+      pending.delete(gift.name);
+      render();
     });
+}
+
+/* taken here and now: shown at once, kept for this browser, and remembered
+   past a reload while Google's copy of the sheet catches up */
+function mark(giftName){
+  claimed.add(giftName);
+  mine.add(giftName);
+  if (claims){
+    claims.remember(giftName);
+    claims.save([...claimed]);
+  }
 }
 
 /* ---------- what other guests have already spoken for ----------
@@ -333,9 +405,6 @@ function claim(gift){
    has finished asking. */
 const warn = $("warn");
 const warnText = $("warnText");
-const KNOWN = new Set(CONFIG.gifts.map(g => g.name));
-
-Claimed.configure({ csv: CONFIG.claimedCsv, exec: CONFIG.claimEndpoint });
 
 /* Anything claimed on this page in this session. Held separately so a
    refresh that has not caught up yet cannot make it look free again. */
@@ -357,16 +426,27 @@ function ago(ms){
   return hrs === 1 ? "an hour ago" : hrs + " hours ago";
 }
 
-function load(){
-  const known = Claimed.cached();
-  if (known) apply(known.names); else render();
+const WARN_NONE = "We couldn't check what's already been spoken for, so everything below " +
+  "looks free when it might not be. Worth trying again before you buy anything.";
 
-  if (!CONFIG.claimedCsv && !CONFIG.claimEndpoint) return;
+function load(){
+  const known = claims && claims.cached();
+  if (known) apply(known.names);
+  else apply(claims ? claims.mine() : []);
+
+  if (!E.claimedCsv && !E.endpoint) return;
 
   const retry = $("retry");
+  if (!claims){
+    warnText.textContent = WARN_NONE;
+    warn.hidden = false;
+    retry.hidden = true;
+    return;
+  }
+  claims.configure({ csv: E.claimedCsv, exec: E.endpoint });
   retry.disabled = true;
 
-  Claimed.refresh()
+  claims.refresh()
     .then(names => {
       apply(names);
       warn.hidden = true;
@@ -375,8 +455,7 @@ function load(){
       warnText.textContent = known
         ? "We couldn't reach the list just now, so this is what it looked like " +
           ago(known.at) + ". Worth trying again before you buy anything."
-        : "We couldn't check what's already been spoken for, so everything below " +
-          "looks free when it might not be. Worth trying again before you buy anything.";
+        : WARN_NONE;
       warn.hidden = false;
     })
     .then(() => { retry.disabled = false; });
@@ -385,6 +464,5 @@ function load(){
 $("retry").addEventListener("click", load);
 load();
 </script>
-<script src="garden.js"></script>
 </body>
 </html>
