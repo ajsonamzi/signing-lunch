@@ -66,32 +66,10 @@
     to{opacity:1; transform:none;}
   }
 
-  .sprig{
-    position:absolute; top:-8px; left:-12px; width:min(190px,40%); pointer-events:none;
-    animation:sway 9s ease-in-out 1.8s infinite;
-  }
-  @keyframes sway{
-    0%,100%{transform:rotate(0deg) translate3d(0,0,0);}
-    50%{transform:rotate(1.2deg) translate3d(0,-5px,0);}
-  }
-
-  /* each line arrives just after the one above it */
-  .rise{opacity:0; transform:translateY(14px);
-    animation:rise .9s cubic-bezier(.22,.9,.28,1) forwards;}
-  @keyframes rise{to{opacity:1; transform:none;}}
-
-  .blossoms{position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden;}
-  .blossom{
-    position:absolute; top:-4vh; border-radius:50%;
-    background:#FFFFFF; opacity:0;
-    box-shadow:0 0 6px rgba(255,255,255,.55);
-    animation:drift linear forwards;
-  }
-  @keyframes drift{
-    0%{opacity:0; transform:translate3d(0,0,0) scale(.7);}
-    12%{opacity:.9;}
-    100%{opacity:0; transform:translate3d(var(--dx),108vh,0) scale(1);}
-  }
+  /* the garden, the vines, the sprigs, the blossoms and the way each line
+     rises into place come from garden.js, shared with every page */
+  .card{--sprig-tl:min(190px,40%); --sprig-br:min(210px,44%); --sprig-tl-phone:40%; --sprig-br-phone:44%;}
+  @media (max-width:520px){ .card{padding-left:20px; padding-right:20px;} }
 
   .eyebrow{
     font-family:var(--sans); font-weight:300; font-size:.76rem; letter-spacing:.24em;
@@ -137,145 +115,47 @@
     *,*::before,*::after{animation:none !important; transition:none !important;}
   }
 </style>
+<script src="garden.js"></script>
 </head>
-<body>
+<body data-fall="celebrate">
 
 <main class="card">
-  <svg class="sprig" viewBox="0 0 260 220" aria-hidden="true">
-    <g fill="none" stroke="#3C6444" stroke-width="1.3" stroke-linecap="round" opacity=".75">
-      <path d="M8 6 C 60 40, 90 70, 120 120"/>
-      <path d="M60 40 C 78 32, 96 34, 112 46"/>
-      <path d="M90 70 C 104 92, 108 112, 104 134"/>
-      <path d="M120 120 C 148 132, 172 130, 196 116"/>
-      <path d="M30 20 C 34 44, 30 62, 18 78"/>
-    </g>
-    <g fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".6">
-      <circle cx="112" cy="46" r="6"/><circle cx="124" cy="38" r="4"/><circle cx="104" cy="34" r="3.4"/>
-      <circle cx="104" cy="134" r="6.4"/><circle cx="96" cy="146" r="4"/><circle cx="112" cy="146" r="3.4"/>
-      <circle cx="196" cy="116" r="7"/><circle cx="208" cy="106" r="4.4"/><circle cx="204" cy="126" r="3.6"/>
-      <circle cx="18" cy="78" r="6"/><circle cx="10" cy="90" r="3.6"/><circle cx="26" cy="90" r="3.2"/>
-    </g>
-  </svg>
+  <p class="eyebrow" data-reveal="250">your reply is in</p>
+  <h1 data-reveal="380">Thank you</h1>
+  <p class="note" data-reveal="510">That's noted, and we're glad you told us. There'll be a long table in the last of the spring light, and now we know whether to leave a chair in it for you.</p>
 
-  <p class="eyebrow">your reply is in</p>
-  <h1>Thank you</h1>
-  <p class="note">That's noted, and we're glad you told us. There'll be a long table in the last of the spring light, and now we know whether to leave a chair in it for you.</p>
+  <hr class="rule" data-reveal="640">
 
-  <hr class="rule">
-
-  <div class="actions">
-    <button class="btn" id="calBtn">Add to your calendar</button>
+  <div class="actions" data-reveal="770">
+    <button type="button" class="btn" id="calBtn">Add to your calendar</button>
     <a class="btn btn--quiet" href="./">Back to the invitation</a>
   </div>
 
-  <p class="status" id="status"></p>
-  <p class="countdown" id="countdown"></p>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="countdown" id="countdown" data-reveal="900"></p>
 </main>
 
-<div class="blossoms" id="blossoms" aria-hidden="true"></div>
-
+<script src="event.js"></script>
 <script>
-/* mirrors the matching values in index.html's CONFIG */
-const EVENT = {
-  nameA: "Nande",
-  nameB: "Ayanda",
-  venue: "GROUND The Venue",
-  address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
-  dress: "Garden formal",
-  timeLabel: "Arrive from 12:00",
-  startsAt: "2026-11-08T12:00:00+02:00",
-  endsAt:   "2026-11-08T17:00:00+02:00"
-};
+/* Everything about the day comes from event.js, shared with every page, so
+   this page cannot disagree with the invitation about the date or the days
+   left — which it once did, by a day, because it did its own sums.
 
+   This page no longer marks the guest as having replied. Replies are sent
+   from the invitation itself now, and a guest who landed here some other
+   way (an old link, their browser's history) would have found the reply
+   form gone, and thought their answer was in when it was not. */
+const E = window.EVENT || null;
+const garden = window.Garden || { whenRevealed(el, fn){ fn(el); } };
 const $ = (id) => document.getElementById(id);
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/* reaching this page means a reply went through, so the invitation
-   knows not to offer the form again on this device */
-try { localStorage.setItem("signing-lunch:replied", new Date().toISOString()); } catch (e) {}
-
-/* the card's lines arrive one after another */
-if (!reduced){
-  document.querySelectorAll(".eyebrow, h1, .note, .rule, .actions, .countdown")
-    .forEach((el, i) => {
-      el.classList.add("rise");
-      el.style.animationDelay = (0.25 + i * 0.13) + "s";
-    });
-}
-
-/* baby's breath draws itself in, stems first */
-if (!reduced){
-  const sprig = document.querySelector(".sprig");
-  sprig.querySelectorAll("g:first-of-type path").forEach((p, i) => {
-    const len = p.getTotalLength();
-    p.style.strokeDasharray = len;
-    p.style.strokeDashoffset = len;
-    p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
-      duration: 1100, delay: 260 + i * 110, fill: "forwards",
-      easing: "cubic-bezier(.35,.9,.35,1)"
-    });
-  });
-  sprig.querySelectorAll("circle").forEach((c, i) => {
-    c.style.transformOrigin = c.getAttribute("cx") + "px " + c.getAttribute("cy") + "px";
-    c.style.opacity = 0;
-    c.animate([{ opacity: 0, transform: "scale(.2)" }, { opacity: 1, transform: "scale(1)" }], {
-      duration: 620, delay: 900 + i * 55, fill: "forwards",
-      easing: "cubic-bezier(.2,.9,.3,1.2)"
-    });
-  });
-}
-
-/* a slow drift of blossoms, seeded now and topped up for a while */
-function blossoms(count){
-  const stage = $("blossoms");
-  for (let i = 0; i < count; i++){
-    const b = document.createElement("span");
-    const size = 3 + Math.random() * 5;
-    b.className = "blossom";
-    b.style.width = b.style.height = size + "px";
-    b.style.left = Math.random() * 100 + "vw";
-    b.style.setProperty("--dx", (Math.random() * 90 - 45) + "px");
-    b.style.animationDuration = (9 + Math.random() * 7) + "s";
-    b.style.animationDelay = (Math.random() * 4) + "s";
-    b.addEventListener("animationend", () => b.remove());
-    stage.appendChild(b);
-  }
-}
-if (!reduced){
-  blossoms(14);
-  setInterval(() => { if (!document.hidden) blossoms(1); }, 2600);
-}
 
 $("calBtn").addEventListener("click", () => {
-  const stamp = (iso) => new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//signing lunch//EN",
-    "BEGIN:VEVENT",
-    "UID:" + Date.now() + "@signing-lunch",
-    "DTSTAMP:" + stamp(new Date().toISOString()),
-    "DTSTART:" + stamp(EVENT.startsAt),
-    "DTEND:" + stamp(EVENT.endsAt),
-    "SUMMARY:" + EVENT.nameA + " & " + EVENT.nameB + " — signing lunch",
-    "LOCATION:" + EVENT.venue + ", " + EVENT.address,
-    "DESCRIPTION:" + EVENT.timeLabel + ". " + EVENT.dress + ".",
-    "END:VEVENT", "END:VCALENDAR"
-  ].join("\r\n");
-
-  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "signing-lunch.ics";
-  a.click();
-  URL.revokeObjectURL(url);
+  if (!E) return;
+  E.downloadCalendar();
   $("status").textContent = "Saved to your downloads — open it to add the day to your calendar.";
 });
 
-const days = Math.ceil((new Date(EVENT.startsAt) - new Date()) / 86400000);
-const el = $("countdown");
-if (days > 1) el.innerHTML = "<strong>" + days + " days</strong> until the long lunch.";
-else if (days === 1) el.innerHTML = "<strong>Tomorrow.</strong> Very nearly time.";
-else if (days === 0) el.innerHTML = "<strong>Today.</strong> See you at the table.";
+garden.whenRevealed($("countdown"), (el) => { if (E) E.countdown(el); });
 </script>
-<script src="garden.js"></script>
 </body>
 </html>
