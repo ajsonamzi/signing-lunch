@@ -451,7 +451,6 @@ const status = $("status");
    card from opening. */
 const cover = $("cover");
 const invite = $("invite");
-const OPENED_KEY = "signing-lunch:opened";
 let opened = false;
 
 function openInvite(straightIn){
@@ -459,7 +458,6 @@ function openInvite(straightIn){
      two observers, the form set up twice */
   if (opened) return;
   opened = true;
-  try { sessionStorage.setItem(OPENED_KEY, "1"); } catch (e) {}
   const reveal = () => {
     cover.style.display = "none";
     invite.classList.add("is-open");
@@ -707,13 +705,20 @@ send.addEventListener("click", async () => {
 })();
 
 /* ---------- coming back to the invitation ----------
-   Someone who has opened the card and gone to the gift list or the
-   photographs comes back to the invitation, not to the closed card again.
-   The card still opens properly for anyone arriving fresh. */
+   "Back to the invitation" on the gift list, the photographs and the thank
+   you links to ./#invitation, and only that opens the card straight away,
+   so nobody is sent back through the closed card they already opened.
+   Everything else — a fresh visit, the link in WhatsApp, a reload — starts
+   on the closed card, as it should. The #invitation is taken off the
+   address at once, so reloading after coming back shows the cover too.
+
+   (This once remembered an opened card for the whole browser tab instead,
+   which hid the cover on every reload; the leftover flag is cleared.) */
 (function returning(){
-  let seen = false;
-  try { seen = sessionStorage.getItem(OPENED_KEY) === "1"; } catch (e) {}
-  if (seen) openInvite(true);
+  try { sessionStorage.removeItem("signing-lunch:opened"); } catch (e) {}
+  if (location.hash !== "#invitation") return;
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  openInvite(true);
 })();
 </script>
 </body>
