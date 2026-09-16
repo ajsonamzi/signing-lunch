@@ -46,10 +46,10 @@
     border:1px solid rgba(60,100,68,.22); pointer-events:none;}
   @keyframes arrive{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
 
-  .sprig{position:absolute; top:-8px; left:-12px; width:min(160px,28%); pointer-events:none;
-    animation:sway 9s ease-in-out 1.8s infinite;}
-  @keyframes sway{0%,100%{transform:rotate(0deg) translate3d(0,0,0);}
-    50%{transform:rotate(1.2deg) translate3d(0,-5px,0);}}
+  /* the garden, the vines, the sprigs and the blossoms come from garden.js;
+     the sprigs are sized down a little for a card with a heading near its top */
+  .card{--sprig-tl:min(160px,28%); --sprig-br:min(180px,32%); --sprig-tl-phone:34%; --sprig-br-phone:38%;}
+  @media (max-width:520px){ .card{padding-left:20px; padding-right:20px;} }
 
   header{text-align:center; position:relative;}
   .eyebrow{font-family:var(--sans); font-weight:300; font-size:.76rem;
@@ -111,6 +111,9 @@
     display:grid; place-items:center; transition:background .2s ease;
   }
   .lb__btn:hover{background:rgba(255,255,255,.2);}
+  /* display:grid above would otherwise beat the hidden attribute, and a
+     single photograph showed arrows that went nowhere */
+  .lb__btn[hidden]{display:none;}
   .lb__close{position:absolute; top:clamp(10px,2vw,24px); right:clamp(10px,2vw,24px);
     font-size:1.3rem; z-index:2;}
   @media (max-width:560px){
@@ -124,35 +127,23 @@
     *,*::before,*::after{animation:none !important; transition:none !important;}
   }
 </style>
+<script src="garden.js"></script>
 </head>
 <body>
 
 <main class="card">
-  <svg class="sprig" viewBox="0 0 260 220" aria-hidden="true">
-    <g fill="none" stroke="#3C6444" stroke-width="1.3" stroke-linecap="round" opacity=".75">
-      <path d="M8 6 C 60 40, 90 70, 120 120"/><path d="M60 40 C 78 32, 96 34, 112 46"/>
-      <path d="M90 70 C 104 92, 108 112, 104 134"/><path d="M120 120 C 148 132, 172 130, 196 116"/>
-      <path d="M30 20 C 34 44, 30 62, 18 78"/>
-    </g>
-    <g fill="#FFFFFF" stroke="#C3D3B6" stroke-width=".6">
-      <circle cx="112" cy="46" r="6"/><circle cx="124" cy="38" r="4"/><circle cx="104" cy="34" r="3.4"/>
-      <circle cx="104" cy="134" r="6.4"/><circle cx="96" cy="146" r="4"/><circle cx="112" cy="146" r="3.4"/>
-      <circle cx="196" cy="116" r="7"/><circle cx="208" cy="106" r="4.4"/><circle cx="204" cy="126" r="3.6"/>
-      <circle cx="18" cy="78" r="6"/><circle cx="10" cy="90" r="3.6"/><circle cx="26" cy="90" r="3.2"/>
-    </g>
-  </svg>
 
-  <header>
+  <header data-reveal>
     <p class="eyebrow">before the day</p>
     <h1>A few photographs</h1>
     <p class="intro">From the engagement, while we were still getting used to the idea. Tap any of them to see it properly.</p>
   </header>
 
-  <hr class="rule">
+  <hr class="rule" data-reveal>
 
   <div class="grid" id="grid"></div>
 
-  <p class="foot"><a class="back" href="./">Back to the invitation</a></p>
+  <p class="foot" data-reveal><a class="back" href="./">Back to the invitation</a></p>
 </main>
 
 <script>
@@ -160,20 +151,27 @@
    Add each engagement photo here, in the order they should appear.
    Put the files in a photos/ folder next to this page.
 
-     { src: "photos/01.jpg", alt: "Nande and Ayanda in the garden" }
+     { src: "photos/01.jpg", alt: "Nande and Ayanda in the garden", w: 1600, h: 1067 }
 
    alt is read aloud by screen readers and shown if an image fails,
    so describe the picture rather than naming the file.
+
+   w and h are the photo's width and height in pixels. They are optional,
+   but with them the wall is laid out before the photos arrive, instead of
+   jumping about as each one loads. Export photos at about 1600px on the
+   long side: straight off a phone they are several megabytes each, and
+   most guests will open this on mobile data.
    ================================================================ */
 const PHOTOS = [
 ];
 
 const $ = (id) => document.getElementById(id);
 const grid = $("grid");
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const garden = window.Garden || { reveal(){} };
 
 if (!PHOTOS.length){
-  grid.outerHTML = '<p class="empty">The photographs are still being chosen.<br>Do come back — they will be here before the day.</p>';
+  grid.outerHTML = '<p class="empty" id="empty">The photographs are still being chosen.<br>Do come back — they will be here before the day.</p>';
+  garden.reveal($("empty"));
 } else {
   PHOTOS.forEach((photo, i) => {
     const btn = document.createElement("button");
@@ -184,6 +182,7 @@ if (!PHOTOS.length){
     const img = document.createElement("img");
     img.src = photo.src;
     img.alt = photo.alt || "";
+    if (photo.w && photo.h){ img.width = photo.w; img.height = photo.h; }
     /* the first few are wanted immediately; the rest can wait until scrolled to */
     img.loading = i < 4 ? "eager" : "lazy";
     img.decoding = "async";
@@ -193,15 +192,18 @@ if (!PHOTOS.length){
     img.addEventListener("error", () => { photo.missing = true; btn.remove(); });
 
     btn.appendChild(img);
-    btn.addEventListener("click", () => open_(photo));
+    btn.addEventListener("click", () => open_(photo, btn));
     grid.appendChild(btn);
   });
+  garden.reveal(grid.children, { stagger: 80 });
 }
 
 /* ---------- lightbox ---------- */
-let at = 0, box = null, shown = [];
+let at = 0, box = null, shown = [], opener = null;
 
-function open_(photo){
+function open_(photo, from){
+  if (box) return;   /* already open: a double tap must not stack a second one */
+  opener = from || null;
   /* only the photographs that actually loaded */
   shown = PHOTOS.filter(p => !p.missing);
   at = Math.max(0, shown.indexOf(photo));
@@ -237,6 +239,11 @@ function show(){
   const one = shown.length < 2;
   $("lbPrev").hidden = one;
   $("lbNext").hidden = one;
+  /* fetch the neighbours now, so the next swipe is instant */
+  if (!one){
+    [shown[(at + 1) % shown.length], shown[(at - 1 + shown.length) % shown.length]]
+      .forEach(p => { const i = new Image(); i.src = p.src; });
+  }
 }
 
 function step(by){
@@ -249,12 +256,23 @@ function close_(){
   document.body.style.overflow = "";
   if (box) box.remove();
   box = null;
+  /* back to the photograph they opened, not the top of the page */
+  if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+  opener = null;
 }
 
 function onKey(e){
   if (e.key === "Escape") close_();
   else if (e.key === "ArrowLeft") step(-1);
   else if (e.key === "ArrowRight") step(1);
+  else if (e.key === "Tab" && box){
+    /* keep the keyboard inside the open photograph */
+    const stops = [...box.querySelectorAll("button")].filter(b => !b.hidden);
+    const first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    else if (!box.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+  }
 }
 
 /* a flick left or right moves through them on a phone */
@@ -269,6 +287,5 @@ function swipe(el){
   }, { passive: true });
 }
 </script>
-<script src="garden.js"></script>
 </body>
 </html>
