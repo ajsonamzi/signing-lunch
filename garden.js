@@ -216,18 +216,27 @@
     }, delay);
   }
 
+  /* at the very end of the page there is no further to scroll, so a part
+     that is only just on screen there will never get any more on screen */
+  function atEnd() { return global.scrollY >= root.scrollHeight - global.innerHeight - 4; }
+
   function onSeen(entries) {
     delivered = true;
     var vh = global.innerHeight;
+    var end = atEnd();
     var hits = [];
     entries.forEach(function (e) {
       if (!e.isIntersecting) return;
       /* a tall part (a long list) may never be 18% on screen, so a quarter
          of the screen's height counts as seen too */
-      if (e.intersectionRatio < 0.18 && e.intersectionRect.height < vh * 0.25) return;
+      if (!end && e.intersectionRatio < 0.18 && e.intersectionRect.height < vh * 0.25) return;
       var rec = recordFor(e.target);
       if (rec && !rec.done) hits.push(rec);
     });
+    take(hits);
+  }
+
+  function take(hits) {
     if (!hits.length) return;
     hits.sort(function (a, b) {
       return a.el.compareDocumentPosition(b.el) & 4 ? -1 : 1;   /* 4: b follows a */
@@ -250,6 +259,20 @@
 
   function showEverything() {
     parts.forEach(function (r) { arrive(r, 0); });
+  }
+
+  /* Reaching the end of the page brings in whatever is on screen there. The
+     link at the foot of the gift list sat a few pixels inside the screen at
+     the bottom, never "seen" enough, and stayed invisible. */
+  function settleEnd() {
+    if (!parts.length || !atEnd()) return;
+    var vh = global.innerHeight, hits = [];
+    parts.forEach(function (r) {
+      if (r.done || !r.el.isConnected) return;
+      var box = r.el.getBoundingClientRect();
+      if (box.top < vh && box.bottom > 0) hits.push(r);
+    });
+    take(hits);
   }
 
   function reveal(list, opts) {
@@ -436,6 +459,7 @@
         ticking = true;
         raf(function () {
           garden.style.transform = "translate3d(0," + (global.scrollY * 0.10).toFixed(1) + "px,0)";
+          settleEnd();
           ticking = false;
         });
       }
