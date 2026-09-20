@@ -92,7 +92,7 @@
   }
   .shot img{width:100%; height:auto; display:block; border-radius:2px;}
   .shot:hover{transform:translateY(-3px); box-shadow:0 10px 22px rgba(5,20,10,.22);}
-  .shot:focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
+  .shot:focus-visible{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
 
   .empty{
     text-align:center; color:var(--ink-soft); font-weight:300; font-size:1.02rem;
@@ -107,6 +107,15 @@
        to tap, without moving the underline or changing the type */
     display:inline-block; padding-top:8px;}
   .back:hover{color:var(--pine); border-color:var(--pine);}
+
+  .more-wrap{text-align:center; margin:1.7rem 0 0;}
+  .more{
+    font-family:var(--sans); font-size:.8rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--pine); background:transparent; cursor:pointer;
+    border:1px solid rgba(60,100,68,.4); border-radius:999px; padding:.85rem 1.7rem;
+    transition:background .25s ease, border-color .25s ease;
+  }
+  .more:hover{background:rgba(127,165,92,.14); border-color:var(--pine);}
 
   /* ---------- lightbox ---------- */
   .lb{
@@ -144,7 +153,7 @@
     .lb__prev{left:22%;} .lb__next{right:22%;}
   }
 
-  :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
+  :focus-visible{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none !important; transition:none !important;}
   }
@@ -165,6 +174,7 @@
   <hr class="rule" data-reveal>
 
   <div class="grid" id="grid"></div>
+  <p class="more-wrap" id="moreWrap"></p>
 
   <p class="foot" data-reveal><a class="back" href="./#invitation">Back to the invitation</a></p>
 </main>
@@ -221,7 +231,13 @@ if (!PHOTOS.length){
   grid.outerHTML = '<p class="empty" id="empty">The photographs are still being chosen.<br>Do come back — they will be here before the day.</p>';
   garden.reveal($("empty"));
 } else {
-  PHOTOS.forEach((photo, i) => {
+  /* The wall opens with ten of them. Nineteen portraits stacked one above
+     another on a phone is about 7,600px of scrolling — nine screens before
+     the way back. The rest are one tap away, and the lightbox has always
+     walked every photograph whatever the wall happens to be showing. */
+  const WALL = 10;
+
+  const shot = (photo, i) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "shot";
@@ -251,9 +267,25 @@ if (!PHOTOS.length){
 
     btn.appendChild(img);
     btn.addEventListener("click", () => open_(photo, btn));
-    grid.appendChild(btn);
-  });
+    return btn;
+  };
+
+  PHOTOS.slice(0, WALL).forEach((photo, i) => grid.appendChild(shot(photo, i)));
   garden.reveal(grid.children, { stagger: 80 });
+
+  if (PHOTOS.length > WALL){
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "more";
+    more.textContent = "Show the other " + (PHOTOS.length - WALL);
+    more.addEventListener("click", () => {
+      const rest = PHOTOS.slice(WALL).map((photo, n) => shot(photo, WALL + n));
+      rest.forEach((b) => grid.appendChild(b));
+      garden.reveal(rest, { stagger: 60 });
+      more.remove();
+    });
+    $("moreWrap").appendChild(more);
+  }
 }
 
 /* ---------- lightbox ---------- */

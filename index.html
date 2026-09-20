@@ -247,11 +247,11 @@
     display:block; margin-bottom:.45rem; text-transform:uppercase;
   }
   .field input{
-    width:100%; font-family:var(--serif); font-size:1.1rem; color:var(--ink);
+    width:100%; font-family:var(--sans); font-size:1.05rem; color:var(--ink);
     background:var(--paper); border:1px solid rgba(60,100,68,.28); border-radius:2px;
     padding:.7rem .85rem;
   }
-  .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
+  .field input:focus{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
   /* the two answers share the row evenly and stay side by side: no wrapping,
      so a narrow phone never stacks one above the other */
   .choices{display:flex; gap:.7rem; justify-content:center; margin:0 0 1.3rem;}
@@ -329,7 +329,7 @@
     .invite{padding-bottom:calc(41% - 2px);}
   }
 
-  :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
+  :focus-visible{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
 
   @media (max-width:520px){
     /* the gutter costs width, so the card gives some padding back */

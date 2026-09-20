@@ -89,10 +89,10 @@
   .field{display:block; max-width:22rem; margin:0 auto 2rem; text-align:left;}
   .field span{font-family:var(--sans); font-size:.74rem; letter-spacing:.14em;
     color:var(--moss); display:block; margin-bottom:.45rem;}
-  .field input{width:100%; font-family:var(--serif); font-size:1.1rem; color:var(--ink);
+  .field input{width:100%; font-family:var(--sans); font-size:1.05rem; color:var(--ink);
     background:var(--paper); border:1px solid rgba(60,100,68,.28); border-radius:2px;
     padding:.7rem .85rem;}
-  .field input:focus{outline:2px solid var(--spring); outline-offset:1px;}
+  .field input:focus{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
 
   ul.gifts{list-style:none; margin:0; padding:0;}
   .gift{
@@ -162,7 +162,7 @@
     display:inline-block; padding-top:8px;}
   .back:hover{color:var(--pine); border-color:var(--pine);}
 
-  :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
+  :focus-visible{outline:2px solid var(--moss); outline-offset:2px; box-shadow:0 0 0 2px var(--paper);}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none !important; transition:none !important;}
   }
