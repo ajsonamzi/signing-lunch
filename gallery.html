@@ -102,7 +102,10 @@
 
   .foot{text-align:center; margin:2.4rem 0 0;}
   .back{font-family:var(--sans); font-size:.84rem; color:var(--moss); text-decoration:none;
-    border-bottom:1px solid rgba(60,100,68,.4); padding-bottom:2px;}
+    border-bottom:1px solid rgba(60,100,68,.4); padding-bottom:2px;
+    /* inline-block and a little air above give the link a 24px tall target
+       to tap, without moving the underline or changing the type */
+    display:inline-block; padding-top:8px;}
   .back:hover{color:var(--pine); border-color:var(--pine);}
 
   /* ---------- lightbox ---------- */
@@ -178,30 +181,36 @@
 
    w and h are the photo's width and height in pixels. They are optional,
    but with them the wall is laid out before the photos arrive, instead of
-   jumping about as each one loads. Export photos at about 1600px on the
-   long side: straight off a phone they are several megabytes each, and
-   most guests will open this on mobile data.
+   jumping about as each one loads.
+
+   Export three cuts of each photograph, all from the original:
+   NN.jpg at 1600px wide, NN-800.jpg at 800, NN-520.jpg at 520. The wall
+   below offers all three and lets the browser take whichever still has at
+   least as many real pixels as that screen can draw, so nobody is ever
+   shown less than their display is capable of. The 1600 is also what the
+   lightbox opens, which is why it is sized for a large retina screen
+   rather than for the wall.
    ================================================================ */
 const PHOTOS = [
-  { src: "photos/01.jpg", alt: "The terrace set for the proposal: a white floral heart, balloons and MARRY ME letters on the chequerboard floor", w: 1333, h: 2000 },
-  { src: "photos/02.jpg", alt: "Nande's hand resting on one shoulder, the new ring on it", w: 1333, h: 2000 },
-  { src: "photos/03.jpg", alt: "Nande's hands clasped behind the neck, the ring catching the light", w: 1333, h: 2000 },
-  { src: "photos/04.jpg", alt: "Nande and Ayanda on the terrace, just after the yes", w: 1333, h: 2000 },
-  { src: "photos/05.jpg", alt: "A bottle of champagne standing in ice", w: 1333, h: 2000 },
-  { src: "photos/06.jpg", alt: "Ayanda down on one knee in front of the floral heart", w: 1333, h: 2000 },
-  { src: "photos/07.jpg", alt: "Nande's hands flying up, Ayanda standing close", w: 1333, h: 2000 },
-  { src: "photos/08.jpg", alt: "Ayanda easing the ring onto Nande's finger", w: 1333, h: 2000 },
-  { src: "photos/09.jpg", alt: "Their two hands together, the ring newly on", w: 1333, h: 2000 },
-  { src: "photos/10.jpg", alt: "The white floral heart and the neon sign reading Will You Marry Me", w: 1333, h: 2000 },
-  { src: "photos/11.jpg", alt: "Nande laughing, an armful of white roses", w: 1333, h: 2000 },
-  { src: "photos/12.jpg", alt: "The bouquet held close, the ring on Nande's hand", w: 1333, h: 2000 },
-  { src: "photos/13.jpg", alt: "The whole terrace: Ayanda kneeling before the heart, MARRY ME spelled out behind", w: 1333, h: 2000 },
-  { src: "photos/14.jpg", alt: "Nande and Ayanda facing each other, hands held", w: 1333, h: 2000 },
-  { src: "photos/15.jpg", alt: "Ayanda holding the white roses", w: 1333, h: 2000 },
-  { src: "photos/16.jpg", alt: "Champagne on ice and white roses on the terrace table", w: 1333, h: 2000 },
-  { src: "photos/17.jpg", alt: "Nande smiling, the bouquet gathered up", w: 1333, h: 2000 },
-  { src: "photos/18.jpg", alt: "Balloons and the lit MARRY ME letters behind the champagne table", w: 1333, h: 2000 },
-  { src: "photos/19.jpg", alt: "Nande from behind, ring hand raised, the bouquet under one arm", w: 1333, h: 2000 },
+  { src: "photos/01.jpg", alt: "The terrace set for the proposal: a white floral heart, balloons and MARRY ME letters on the chequerboard floor", w: 1600, h: 2400 },
+  { src: "photos/02.jpg", alt: "Nande's hand resting on one shoulder, the new ring on it", w: 1600, h: 2400 },
+  { src: "photos/03.jpg", alt: "Nande's hands clasped behind the neck, the ring catching the light", w: 1600, h: 2400 },
+  { src: "photos/04.jpg", alt: "Nande and Ayanda on the terrace, just after the yes", w: 1600, h: 2400 },
+  { src: "photos/05.jpg", alt: "A bottle of champagne standing in ice", w: 1600, h: 2400 },
+  { src: "photos/06.jpg", alt: "Ayanda down on one knee in front of the floral heart", w: 1600, h: 2400 },
+  { src: "photos/07.jpg", alt: "Nande's hands flying up, Ayanda standing close", w: 1600, h: 2400 },
+  { src: "photos/08.jpg", alt: "Ayanda easing the ring onto Nande's finger", w: 1600, h: 2400 },
+  { src: "photos/09.jpg", alt: "Their two hands together, the ring newly on", w: 1600, h: 2400 },
+  { src: "photos/10.jpg", alt: "The white floral heart and the neon sign reading Will You Marry Me", w: 1600, h: 2400 },
+  { src: "photos/11.jpg", alt: "Nande laughing, an armful of white roses", w: 1600, h: 2400 },
+  { src: "photos/12.jpg", alt: "The bouquet held close, the ring on Nande's hand", w: 1600, h: 2400 },
+  { src: "photos/13.jpg", alt: "The whole terrace: Ayanda kneeling before the heart, MARRY ME spelled out behind", w: 1600, h: 2400 },
+  { src: "photos/14.jpg", alt: "Nande and Ayanda facing each other, hands held", w: 1600, h: 2400 },
+  { src: "photos/15.jpg", alt: "Ayanda holding the white roses", w: 1600, h: 2400 },
+  { src: "photos/16.jpg", alt: "Champagne on ice and white roses on the terrace table", w: 1600, h: 2400 },
+  { src: "photos/17.jpg", alt: "Nande smiling, the bouquet gathered up", w: 1600, h: 2400 },
+  { src: "photos/18.jpg", alt: "Balloons and the lit MARRY ME letters behind the champagne table", w: 1600, h: 2400 },
+  { src: "photos/19.jpg", alt: "Nande from behind, ring hand raised, the bouquet under one arm", w: 1600, h: 2400 },
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -220,6 +229,16 @@ if (!PHOTOS.length){
 
     const img = document.createElement("img");
     img.src = photo.src;
+    /* The wall never shows a photograph wider than about 300px, and often
+       half that, while the file behind it is 1600 wide for the lightbox.
+       So the two smaller cuts are offered alongside it and the browser
+       takes whichever is still at least as wide as the screen can resolve.
+       sizes deliberately claims a little more than the column really is:
+       overstating it can only make the browser reach for a larger file,
+       and erring towards quality is the point. */
+    const cut = photo.src.replace(/\.jpg$/, "");
+    img.srcset = cut + "-520.jpg 520w, " + cut + "-800.jpg 800w, " + photo.src + " 1600w";
+    img.sizes = "(max-width: 700px) calc(100vw - 100px), 320px";
     img.alt = photo.alt || "";
     if (photo.w && photo.h){ img.width = photo.w; img.height = photo.h; }
     /* the first few are wanted immediately; the rest can wait until scrolled to */

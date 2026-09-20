@@ -156,7 +156,10 @@
 
   .foot{text-align:center; margin:2.4rem 0 0;}
   .back{font-family:var(--sans); font-size:.84rem; color:var(--moss); text-decoration:none;
-    border-bottom:1px solid rgba(60,100,68,.4); padding-bottom:2px;}
+    border-bottom:1px solid rgba(60,100,68,.4); padding-bottom:2px;
+    /* inline-block and a little air above give the link a 24px tall target
+       to tap, without moving the underline or changing the type */
+    display:inline-block; padding-top:8px;}
   .back:hover{color:var(--pine); border-color:var(--pine);}
 
   :focus-visible{outline:2px solid var(--spring); outline-offset:3px;}
