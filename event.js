@@ -18,7 +18,7 @@
     blurb: "By November, spring will be down to its last few days — so we're borrowing one. We'll make it official first, quickly and quietly, and then comes the good part: a long table, a longer lunch, and nobody in any particular hurry to leave.",
 
     dateLabel: "Sunday, 8 November 2026",
-    timeLabel: "Arrive from 12:00, until 17:00",
+    timeLabel: "Arrive from 12:00",
 
     venue: "GROUND The Venue",
     address: "Plot 19 Driefontein Rd, Muldersdrift, 1747",
